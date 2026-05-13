@@ -122,7 +122,7 @@ class WinComponent {
         const container = document.createElement('div')
         container.classList.add('container')
         container.classList.add('win')
-        button.append('')
+        container.append('')
         return container
     }
 }
