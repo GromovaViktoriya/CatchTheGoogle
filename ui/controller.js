@@ -41,6 +41,9 @@ export class Controller {
             player2Points: this.#model.player2Points,
             pointsToWin: this.#model.pointsToWin,
             pointsToLoose: this.#model.pointsToLose,
+            winner: this.#model.winner,
+            player1Name: this.#model.player1Name,
+            player2Name: this.#model.player2Name,
         }
         this.#view.render(dto)
     }
