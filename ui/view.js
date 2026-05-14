@@ -43,10 +43,6 @@ export class View {
         const settingsComponent = new SettingsComponent({onchange: this.onsettingschange});
         const settingsElement = settingsComponent.render(dto);
 
-
-        const modalComponent = new ModalComponent({onstart: this.onstart});
-        const modalElement = modalComponent.render(dto);
-
         rootElement.innerHTML = '';
 
         switch (dto.status) {
@@ -112,9 +108,9 @@ class SettingsComponent {
         settingsContainer.id = 'settings';
 
         const gridOptions = [{t: '4x4', v: 4}, {t: '5x5', v: 5}, {t: '7x7', v: 7}, {t: '8x8', v: 8}];
-        const winOptions = [{t: '10 pts', v: 10}, {t: '20 pts', v: 20}, {t: '30 pts', v: 30}];
-        const loseOptions = [{t: '5 pts', v: 5}, {t: '10 pts', v: 10}, {t: '20 pts', v: 20}];
-        const intervalOptions = [{t: '1 sec', v: 1000}, {t: '2 sec', v: 2000}, {t: '3 sec', v: 3000}];
+        const winOptions = [{t: '10 pts', v: 10}, {t: '20 pts', v: 20}, {t: '30 pts', v: 30}, {t: '40 pts', v: 40}];
+        const loseOptions = [{t: '5 pts', v: 5}, {t: '10 pts', v: 10}, {t: '15 pts', v: 15}, {t: '20 pts', v: 20}];
+        const intervalOptions = [{t: '1 sec', v: 1000}, {t: '2 sec', v: 2000}, {t: '3 sec', v: 3000}, {t: '4 sec', v: 4000}];
 
         settingsContainer.append(
             this.#createOptionLine('Grid size', '01', gridOptions, dto.gridSize.columnsCount, 'gridSize'),
@@ -180,6 +176,7 @@ class GameInterfaceComponent {
         titleSpan.textContent = name;
 
         const img = document.createElement('img');
+        img.classList.add('result-image');
         img.src = imageSrc;
         img.alt = name;
 
@@ -272,7 +269,8 @@ class ModalComponent {
         titleModal.textContent = isGoogleWinner ? 'Google Win!' : `You Win!`
         const textModal = document.createElement('div')
         textModal.classList.add('text-modal')
-        textModal.textContent = isGoogleWinner ? `You'll be lucky next time` : `${dto.winner.name}`
+        const winnerName = dto.winner ? dto.winner.name : 'Unknown';
+        textModal.textContent = isGoogleWinner ? `You'll be lucky next time` : winnerName;
 
         const modalResult = document.createElement('div')
         modalResult.classList.add('modal-result')

@@ -3,13 +3,15 @@ import {GridSettings} from "./grid-settings.js";
 
 export class GameSettings {
     #gridSize
+    #thisGoogleSettings
     #googleJumpInterval
     #pointsToWin
     #pointsToLose
 
     constructor(grid = 4, pointsToWin = 10, pointsToLose = 10) {
         this.#gridSize = new GridSettings(grid)
-        this.#googleJumpInterval = new GoogleSettings(1000)
+        this.#thisGoogleSettings = new GoogleSettings(1000)
+        this.#googleJumpInterval = this.#thisGoogleSettings.googleJumpInterval
         this.#pointsToWin = pointsToWin
         this.#pointsToLose = pointsToLose
     }

@@ -2,9 +2,8 @@ import {GameStatuses} from "./constants/game-statuses.js";
 import {Position} from "./position.js";
 import {moveDirection} from "./constants/moveDirection.js";
 import {Player} from "./entities/player.js";
-import {GoogleSettings} from "./settings/google-settings";
-import {GameSettings} from "./settings/game-settings";
-import {Google} from "./entities/google";
+import {GameSettings} from "./settings/game-settings.js";
+import {Google} from "./entities/google.js";
 
 export class Game {
     #status = GameStatuses.SETTINGS;
@@ -30,11 +29,17 @@ export class Game {
             this.#status !== GameStatuses.LOSE) {
             throw new Error('Game must be in Settings status before start')
         }
+
+        if (this.#status === GameStatuses.WIN || this.#status === GameStatuses.LOSE) {
+            clearInterval(this.#jumpIntervalId);
+            this.#googlePoints = 0;
+        }
+
         this.#status = GameStatuses.IN_PROGRESS;
         this.#winner = null;
         this.#player1 = new Player(1, 'Player 1', null, 0)
         this.#player2 = new Player(2, 'Player 2', null, 0)
-        this.#google = new Google(null, this.#googlePoints);
+        this.#google = new Google(null, 0);
         this.#placePlayer1ToGrid()
         this.#placePlayer2ToGrid()
         this.#makeGoogleJump()
@@ -62,18 +67,8 @@ export class Game {
         this.#observers.forEach(observerFunction => observerFunction())
     }
 
-    #resetJumpInterval() {
-        clearInterval(this.#jumpIntervalId);
-        this.#jumpIntervalId = setInterval(() => {
-            this.#checkWinCondition();
-            if (this.#status === GameStatuses.IN_PROGRESS) {
-                this.#makeGoogleJump();
-                this.#notify();
-            }
-        }, this.#settings.googleJumpInterval);
-    }
-
     movePlayer(playerId, direction) {
+        if (this.#status !== GameStatuses.IN_PROGRESS) return;
         if (direction !== moveDirection.UP
             && direction !== moveDirection.DOWN
             && direction !== moveDirection.LEFT
@@ -218,5 +213,14 @@ export class Game {
     set googlePoints(points) {this.#googlePoints = points;}
     set player1Name(player1Name) {this.#player1.name = player1Name;}
     set player2Name(player2Name) {this.#player2.name = player2Name;}
+    set pointsToWin(value) {
+        this.#settings.pointsToWin = value;
+        this.#notify();
+    }
+
+    set pointsToLose(value) {
+        this.#settings.pointsToLose = value;
+        this.#notify();
+    }
 }
 

@@ -23,6 +23,12 @@ export class Controller {
         this.#view.onplayermove = (playerNumber, direction) => {
             this.#model.movePlayer(playerNumber, direction)
         }
+        this.#view.onsettingschange = (settingKey, value) => {
+            if (settingKey === 'gridSize') this.#model.gridSize = {columnsCount: Number(value), rowsCount: Number(value)};
+            if (settingKey === 'pointsToWin') this.#model.pointsToWin = Number(value);
+            if (settingKey === 'pointsToLose') this.#model.pointsToLose = Number(value);
+            if (settingKey === 'googleJumpInterval') this.#model.googleJumpInterval = Number(value);
+        }
     }
 
     init() {
@@ -46,8 +52,9 @@ export class Controller {
             player2Name: this.#model.player2Name,
             googleName: this.#model.googleName,
             google: this.#model.google,
-            player1:this.#model.player1,
-            player2:this.#model.player2,
+            player1: this.#model.player1,
+            player2: this.#model.player2,
+            googleJumpInterval: this.#model.googleJumpInterval,
         }
         this.#view.render(dto)
     }
