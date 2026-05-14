@@ -11,10 +11,10 @@ export class Player {
         this.#points = 0
     }
 
-    get playerPoints(){return this.#points}
-    get playerId(){return this.#id}
-    get playerName(){return this.#name}
+    get points(){return this.#points}
+    get id(){return this.#id}
+    get name(){return this.#name}
 
-    set playerPoints(points){this.#points = points}
-    set playerName(name){this.#name = name}
+    set points(points){this.#points = points}
+    set name(name){this.#name = name}
 }

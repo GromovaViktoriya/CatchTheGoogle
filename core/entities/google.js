@@ -7,10 +7,10 @@ export class Google {
         this.#googlePoints = googlePoints;
     }
 
-    get googleName(){return this.#googleName;}
-    get googlePoints() {return this.#googlePoints;}
-    get googlePosition() {return this.#googlePosition;}
+    get name(){return this.#googleName;}
+    get points() {return this.#googlePoints;}
+    get position() {return this.#googlePosition;}
 
-    set googlePosition(newPosition) {this.#googlePosition = newPosition;}
-    set googlePoints(newValue) {this.#googlePoints = newValue;}
+    set position(newPosition) {this.#googlePosition = newPosition;}
+    set points(newValue) {this.#googlePoints = newValue;}
 }

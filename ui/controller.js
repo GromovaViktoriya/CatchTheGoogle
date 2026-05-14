@@ -45,6 +45,9 @@ export class Controller {
             player1Name: this.#model.player1Name,
             player2Name: this.#model.player2Name,
             googleName: this.#model.googleName,
+            google: this.#model.google,
+            player1:this.#model.player1,
+            player2:this.#model.player2,
         }
         this.#view.render(dto)
     }

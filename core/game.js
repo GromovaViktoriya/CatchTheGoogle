@@ -156,15 +156,15 @@ export class Game {
 
     #checkWinCondition() {
         if (this.player1Points === this.pointsToWin) {
-            this.#winner = this.player1Name;
+            this.#winner = this.#player1;
             this.#finishGame(GameStatuses.WIN);
         }
         if (this.player2Points === this.pointsToWin) {
-            this.#winner = this.player2Name;
+            this.#winner = this.#player2;
             this.#finishGame(GameStatuses.WIN);
         }
         if (this.#googlePoints === this.#settings.pointsToLose) {
-            this.#winner = this.googleName;
+            this.#winner = this.#google;
             this.#finishGame(GameStatuses.LOSE);
         }
     }
@@ -188,6 +188,9 @@ export class Game {
     get googlePoints() {return this.#googlePoints}
     get pointsToWin(){return this.#settings.pointsToWin}
     get pointsToLose(){return this.#settings.pointsToLose}
+    get player1(){return this.#player1}
+    get player2(){return this.#player2}
+    get google(){return this.#google}
 
     /**
      * Sets the interval for the target's jumps across the grid.
