@@ -36,7 +36,10 @@ export class Controller {
             this.#model.movePlayer(playerNumber, direction)
         }
         this.#view.onsettingschange = (settingKey, value) => {
-            if (settingKey === 'gridSize') this.#model.gridSize = {columnsCount: Number(value), rowsCount: Number(value)};
+            if (settingKey === 'gridSize') this.#model.gridSize = {
+                columnsCount: Number(value),
+                rowsCount: Number(value)
+            };
             if (settingKey === 'pointsToWin') this.#model.pointsToWin = Number(value);
             if (settingKey === 'pointsToLose') this.#model.pointsToLose = Number(value);
             if (settingKey === 'googleJumpInterval') this.#model.googleJumpInterval = Number(value);

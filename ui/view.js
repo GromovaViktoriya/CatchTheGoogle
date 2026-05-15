@@ -149,12 +149,27 @@ class SettingsComponent {
             this.#props.onpause?.();
         }
 
+        const switchButtonWrapper = document.createElement('div');
+        switchButtonWrapper.classList.add('switch-button');
+        const switchLabel = document.createElement('label');
+        switchLabel.textContent = 'Sound on'
+        const toggleButton = document.createElement('button');
+        toggleButton.classList.add('toggle')
+        toggleButton.onclick = () => {
+           toggleButton.classList.toggle('on');
+        }
+        const sliderSpan = document.createElement('span');
+        sliderSpan.classList.add('icon-slider');
+        toggleButton.append(sliderSpan);
+        switchButtonWrapper.append(switchLabel, toggleButton);
+
         settingsContainer.append(
             this.#createOptionLine('Grid size', '01', gridOptions, dto.gridSize.columnsCount, 'gridSize', dto),
             this.#createOptionLine('Points to win', '02', winOptions, dto.pointsToWin, 'pointsToWin', dto),
             this.#createOptionLine('Points to lose', '03', loseOptions, dto.pointsToLose, 'pointsToLose', dto),
             this.#createOptionLine('Google Jump Interval', '04', intervalOptions, dto.googleJumpInterval, 'googleJumpInterval', dto),
-            pauseButton
+            pauseButton,
+            switchButtonWrapper
         );
 
         return settingsContainer;
