@@ -18,7 +18,7 @@ export class Game {
     #gameSessionTimerId = null
     seconds = 0
     minutes = 0
-    #timer = `0${this.minutes}:0${this.seconds}`;
+    #timer = `00:00`;
 
     //DI/Dependency injection
     constructor(somethingSimilarToNumberUtility) {
@@ -42,13 +42,7 @@ export class Game {
         this.#makeGoogleJump()
         this.#notify()
 
-        this.#jumpIntervalId = setInterval(() => {
-            this.#checkWinCondition();
-            if (this.#status === GameStatuses.IN_PROGRESS) {
-                this.#makeGoogleJump();
-                this.#notify();
-            }
-        }, this.#settings.googleJumpInterval);
+        this.#runJumpInterval();
 
         //установка таймера игровой сессии
         this.#gameSessionTimerId = setInterval(() => {
@@ -78,18 +72,23 @@ export class Game {
         this.minutes = 0;
         this.#timer = `00:00`;
         this.#googlePoints = 0;
+        this.google.points = 0;
+    }
+
+    #runJumpInterval() {
+        this.#jumpIntervalId = setInterval(() => {
+            this.#makeGoogleJump();
+
+            this.googlePoints += 1;
+
+            this.#checkWinCondition();
+            this.#notify();
+        }, this.#settings.googleJumpInterval);
     }
 
     #resetJumpInterval() {
         clearInterval(this.#jumpIntervalId);
-        this.#jumpIntervalId = setInterval(() => {
-            this.googlePoints += 1;
-            this.#checkWinCondition();
-            if (this.status === GameStatuses.IN_PROGRESS) {
-                this.#makeGoogleJump();
-                this.#notify();
-            }
-        }, this.#settings.googleJumpInterval);
+        this.#runJumpInterval();
     }
 
     //массив наблюдателей-подписчиков
@@ -148,7 +147,16 @@ export class Game {
         }
         if (activePlayer.position.equals(this.#googlePosition)) {
             activePlayer.points += 1;
-            this.#resetJumpInterval()
+            clearInterval(this.#jumpIntervalId);
+            this.#googlePosition = null;
+            this.#notify();
+
+            setTimeout(() => {
+                if (this.status !== GameStatuses.IN_PROGRESS) return;
+                this.#makeGoogleJump();
+                this.#notify();
+                this.#runJumpInterval();
+            }, 500);
         }
 
         this.#checkWinCondition();
@@ -209,7 +217,6 @@ export class Game {
     #finishGame(status) {
         this.status = status;
         clearInterval(this.#jumpIntervalId);
-        this.googlePoints = 0;
     }
 
 
@@ -277,7 +284,11 @@ export class Game {
     }
     set player1Points(points) {this.#player1.points = points}
     set player2Points(points) {this.#player2.points = points;}
-    set googlePoints(points) {this.#googlePoints = points;}
+    set googlePoints(points) {
+        this.#googlePoints = points;
+        if (this.#google) {
+            this.#google.points = points;
+        }}
     set player1Name(player1Name) {this.#player1.name = player1Name;}
     set player2Name(player2Name) {this.#player2.name = player2Name;}
     set winner(winner) {this.#winner = winner;}

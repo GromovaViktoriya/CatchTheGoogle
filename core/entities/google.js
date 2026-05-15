@@ -1,16 +1,16 @@
 export class Google {
-    #googlePoints = 0
-    #googlePosition = null
-    #googleName = 'Google';
+    #points = 0
+    #position = null
+    #name = 'Google';
     constructor(position, googlePoints) {
-        this.#googlePosition = position;
-        this.#googlePoints = googlePoints;
+        this.#position = position;
+        this.#points = googlePoints;
     }
 
-    get name(){return this.#googleName;}
-    get points() {return this.#googlePoints;}
-    get position() {return this.#googlePosition;}
+    get name(){return this.#name;}
+    get points() {return this.#points;}
+    get position() {return this.#position;}
 
-    set position(newPosition) {this.#googlePosition = newPosition;}
-    set points(newValue) {this.#googlePoints = newValue;}
+    set position(newPosition) {this.#position = newPosition;}
+    set points(newValue) {this.#points = newValue;}
 }
