@@ -1,8 +1,8 @@
-import {Game} from "./game";
-import {GameStatuses} from "./constants/game-statuses";
-import {ShogunNumberUtility} from "./shogun-number-utility";
-import {moveDirection} from "./constants/moveDirection";
-import {GridSettings} from "./settings/grid-settings";
+import {Game} from "./game.js";
+import {GameStatuses} from "./constants/game-statuses.js";
+import {ShogunNumberUtility} from "./shogun-number-utility.js";
+import {moveDirection} from "./constants/moveDirection.js";
+import {GridSettings} from "./settings/grid-settings.js";
 
 
 describe('Game', () => {
