@@ -8,6 +8,7 @@ export class View {
     onrestart = null
     onpause = null
     onresume = null
+    #isNoticeClosed = false;
 
     constructor() {
         window.addEventListener('keyup', (e) => {
@@ -43,8 +44,12 @@ export class View {
     render(dto) {
         const rootElement = document.getElementById('root')
 
-        const settingsComponent = new SettingsComponent({onchange: this.onsettingschange});
+        const settingsComponent = new SettingsComponent({onchange: this.onsettingschange, onpause: this.onpause});
         const settingsElement = settingsComponent.render(dto);
+        const gameInterfaceComponent = new GameInterfaceComponent();
+        const gameInterfaceElement = gameInterfaceComponent.render(dto);
+        const gridComponent = new GridComponent();
+        const gridElement = gridComponent.render(dto);
 
         rootElement.innerHTML = '';
 
@@ -55,13 +60,14 @@ export class View {
                 rootElement.append(settingsElement, startElement);
                 break;
             case GameStatuses.IN_PROGRESS: {
-                const gameInterfaceComponent = new GameInterfaceComponent();
-                const gameInterfaceElement = gameInterfaceComponent.render(dto);
-                const noticeComponent = new NoticeComponent();
-                const noticeElement = noticeComponent.render();
-                const gridComponent = new GridComponent();
-                const gridElement = gridComponent.render(dto);
-                rootElement.append(settingsElement, gameInterfaceElement,noticeElement, gridElement);
+                if (!this.#isNoticeClosed) {
+                    const noticeComponent = new NoticeComponent({
+                        onclose: () => { this.#isNoticeClosed = true; }
+                    });
+                    const noticeElement = noticeComponent.render();
+                    rootElement.append(noticeElement);
+                }
+                rootElement.append(settingsElement, gameInterfaceElement, gridElement);
                 break;
             }
             case GameStatuses.WIN:
@@ -72,9 +78,9 @@ export class View {
                 break;
             }
             case GameStatuses.PAUSE: {
-                const pauseComponent = new PauseComponent({onpause: this.onresume, onresume: this.onresume});
+                const pauseComponent = new PauseComponent({onrestart: this.onrestart, onresume: this.onresume});
                 const pauseElement = pauseComponent.render(dto)
-                rootElement.append(pauseElement);
+                rootElement.append(settingsElement, gameInterfaceElement, gridElement, pauseElement,);
                 break;
             }
         }
@@ -118,17 +124,31 @@ class SettingsComponent {
         const settingsContainer = document.createElement('div');
         settingsContainer.classList.add('top-items');
         settingsContainer.id = 'settings';
+        const isGameActive = dto.status === GameStatuses.IN_PROGRESS;
 
         const gridOptions = [{t: '4x4', v: 4}, {t: '5x5', v: 5}, {t: '7x7', v: 7}, {t: '8x8', v: 8}];
         const winOptions = [{t: '10 pts', v: 10}, {t: '20 pts', v: 20}, {t: '30 pts', v: 30}, {t: '40 pts', v: 40}];
         const loseOptions = [{t: '5 pts', v: 5}, {t: '10 pts', v: 10}, {t: '15 pts', v: 15}, {t: '20 pts', v: 20}];
         const intervalOptions = [{t: '1 sec', v: 1000}, {t: '2 sec', v: 2000}, {t: '3 sec', v: 3000}, {t: '4 sec', v: 4000}];
 
+        const pauseButton = document.createElement('button');
+        pauseButton.classList.add('pause-button');
+        pauseButton.disabled = !isGameActive;
+        const pauseIcon = document.createElement('img');
+
+        pauseIcon.src = isGameActive ? 'img/icons/pauseButtonActive.svg' : 'img/icons/pauseButton.svg';
+        pauseIcon.alt = 'pause';
+        pauseButton.append(pauseIcon);
+        pauseButton.onclick = () => {
+            this.#props.onpause?.();
+        }
+
         settingsContainer.append(
             this.#createOptionLine('Grid size', '01', gridOptions, dto.gridSize.columnsCount, 'gridSize', dto),
             this.#createOptionLine('Points to win', '02', winOptions, dto.pointsToWin, 'pointsToWin', dto),
             this.#createOptionLine('Points to lose', '03', loseOptions, dto.pointsToLose, 'pointsToLose', dto),
-            this.#createOptionLine('Google Jump Interval', '04', intervalOptions, dto.googleJumpInterval, 'googleJumpInterval', dto)
+            this.#createOptionLine('Google Jump Interval', '04', intervalOptions, dto.googleJumpInterval, 'googleJumpInterval', dto),
+            pauseButton
         );
 
         return settingsContainer;
@@ -335,20 +355,57 @@ class PauseComponent {
         const pauseContainer = document.createElement('div');
         pauseContainer.classList.add('pause-container');
         pauseContainer.id = 'pause-container';
+
+        const pauseWrapper = document.createElement('div');
+        pauseWrapper.classList.add('pause-wrapper');
+        pauseContainer.append(pauseWrapper);
+
+        const pauseTitle = document.createElement('h1');
+        pauseTitle.classList.add('pause-title');
+        pauseTitle.textContent = 'GAME PAUSED';
+
+        const pauseButtonWrapper = document.createElement('div');
+        pauseButtonWrapper.classList.add('pause-button-wrapper');
+
         const resumeButton = document.createElement('button');
-        resumeButton.classList.add('button', 'resume-button');
+        resumeButton.classList.add('pauseBtn','resume-button');
+        const resumeIcon = document.createElement('img');
+        resumeIcon.src = 'img/icons/resumeIcon.svg';
+        resumeIcon.alt = 'resumeIcon';
+        resumeButton.onclick = () => {
+            this.#props?.onresume?.()
+        }
+        resumeButton.append(resumeIcon, 'RESUME');
+
         const quitButton = document.createElement('button');
-        quitButton.classList.add('button', 'quit-button')   }
+        quitButton.classList.add('pauseBtn','quit-button')
+        const quitIcon = document.createElement('img');
+        quitIcon.src = 'img/icons/quitIcon.svg';
+        quitIcon.alt = 'quitIcon';
+        quitButton.onclick = () => {
+            this.#props?.onrestart?.()
+        }
+        quitButton.append(quitIcon, 'QUIT');
+
+        pauseButtonWrapper.append(quitButton, resumeButton);
+
+        pauseWrapper.append(pauseTitle, pauseButtonWrapper);
+        return pauseContainer;
+    }
 }
 
 class NoticeComponent {
+    #props
+    constructor(props) {
+        this.#props = props
+    }
     render(){
         const noticeContainer = document.createElement('div');
         noticeContainer.classList.add('notice');
         noticeContainer.id = 'notice';
 
         const noticeIcon = document.createElement('img');
-        noticeIcon.src = 'img/icons/noticeIcon.svg';
+        noticeIcon.src = 'img/icons/info.svg';
         noticeIcon.alt = 'notice';
 
         const noticeText = document.createElement('p');
@@ -357,9 +414,10 @@ class NoticeComponent {
 
         const noticeButton = document.createElement('button');
         noticeButton.classList.add('notice-button');
-        noticeButton.textContent = 'Ok';
+        noticeButton.textContent = 'OK';
         noticeButton.onclick = () => {
-            noticeContainer.display = 'none';
+            noticeContainer.style.display = 'none';
+            this.#props?.onclose?.();
         }
 
         noticeContainer.append(noticeIcon,noticeText, noticeButton);

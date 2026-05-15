@@ -48,8 +48,9 @@ export class Game {
 
     restart() {
         if (this.status !== GameStatuses.WIN &&
-            this.status !== GameStatuses.LOSE) {
-            throw new Error('Game must be in Settings status before start')
+            this.status !== GameStatuses.LOSE &&
+            this.status !== GameStatuses.PAUSE) {
+            throw new Error('Game must be finished or paused to restart')
         }
         this.#settings = new GameSettings(4, 10, 10);
         this.status = GameStatuses.SETTINGS;
@@ -57,22 +58,21 @@ export class Game {
         this.seconds = 0;
         this.minutes = 0;
         this.#timer = `00:00`;
-        this.#googlePoints = 0;
-        this.google.points = 0;
+        this.googlePoints = 0;
         this.#notify();
     }
 
     pause(){
+        this.status = GameStatuses.PAUSE;
         clearInterval(this.#gameSessionTimerId);
         clearInterval(this.#jumpIntervalId);
-        this.status = GameStatuses.PAUSE;
         this.#notify();
     }
 
     resume(){
+        this.status = GameStatuses.IN_PROGRESS;
         this.#runGameSessionTimer()
         this.#runJumpInterval();
-        this.status = GameStatuses.IN_PROGRESS;
         this.#notify();
     }
 
@@ -88,6 +88,7 @@ export class Game {
     }
 
     #runGameSessionTimer() {
+        clearInterval(this.#gameSessionTimerId);
         this.#gameSessionTimerId = setInterval(() => {
             this.seconds += 1;
             if (this.seconds > 59) {
@@ -227,6 +228,7 @@ export class Game {
     #finishGame(status) {
         this.status = status;
         clearInterval(this.#jumpIntervalId);
+        clearInterval(this.#gameSessionTimerId);
     }
 
 
