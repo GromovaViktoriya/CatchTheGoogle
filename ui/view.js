@@ -5,6 +5,7 @@ export class View {
     onstart = null
     onplayermove = null
     onsettingschange = null
+    onrestart = null
 
     constructor() {
         window.addEventListener('keyup', (e) => {
@@ -61,7 +62,7 @@ export class View {
             }
             case GameStatuses.WIN:
             case GameStatuses.LOSE: {
-                const modalComponent = new ModalComponent({onstart: this.onstart});
+                const modalComponent = new ModalComponent({onrestart: this.onrestart});
                 const modalElement = modalComponent.render(dto);
                 rootElement.append(modalElement);
                 break;
@@ -76,8 +77,8 @@ class SettingsComponent {
         this.#props = props
     }
 
-    // Хелпер для создания селектов
-        #createOptionLine (labelTitle, id, options, currentValue, settingKey) {
+    //Хелпер для создания селектов
+        #createOptionLine (labelTitle, id, options, currentValue, settingKey, dto) {
         const container = document.createElement('div');
         container.classList.add('line');
 
@@ -87,10 +88,11 @@ class SettingsComponent {
 
         const select = document.createElement('select');
         select.id = id;
+        select.disabled = dto.status !== GameStatuses.SETTINGS;
 
         options.forEach(opt => {
             const option = new Option(opt.t, opt.v);
-            if ((opt.v).toString() === currentValue) option.selected = true;
+            if ((opt.v).toString() === currentValue?.toString()) option.selected = true;
             select.append(option);
         });
 
@@ -113,10 +115,10 @@ class SettingsComponent {
         const intervalOptions = [{t: '1 sec', v: 1000}, {t: '2 sec', v: 2000}, {t: '3 sec', v: 3000}, {t: '4 sec', v: 4000}];
 
         settingsContainer.append(
-            this.#createOptionLine('Grid size', '01', gridOptions, dto.gridSize.columnsCount, 'gridSize'),
-            this.#createOptionLine('Points to win', '02', winOptions, dto.pointsToWin, 'pointsToWin'),
-            this.#createOptionLine('Points to lose', '03', loseOptions, dto.pointsToLose, 'pointsToLose'),
-            this.#createOptionLine('Google Jump Interval', '04', intervalOptions, dto.googleJumpInterval, 'googleJumpInterval')
+            this.#createOptionLine('Grid size', '01', gridOptions, dto.gridSize.columnsCount, 'gridSize', dto),
+            this.#createOptionLine('Points to win', '02', winOptions, dto.pointsToWin, 'pointsToWin', dto),
+            this.#createOptionLine('Points to lose', '03', loseOptions, dto.pointsToLose, 'pointsToLose', dto),
+            this.#createOptionLine('Google Jump Interval', '04', intervalOptions, dto.googleJumpInterval, 'googleJumpInterval', dto)
         );
 
         return settingsContainer;
@@ -156,11 +158,23 @@ class GameInterfaceComponent {
         pointsContainer.classList.add('points-container');
         pointsContainer.id = 'points-container';
 
-        //Отрисовка блоков счета (Player 1, Player 2, Google)
+        //блок таймера
+        const block = document.createElement('div');
+        block.classList.add('result-block');
+        const titleSpan = document.createElement('span');
+        titleSpan.classList.add('result-title');
+        titleSpan.textContent = 'Time';
+        const scoreSpan = document.createElement('span');
+        scoreSpan.classList.add('result');
+        scoreSpan.textContent = dto.timer;
+        block.append(titleSpan, scoreSpan);
+
+        //отрисовка блоков счета (Player 1, Player 2, Google)
         pointsContainer.append(
             this.#createResultBlock('Player 1', 'img/icons/man01.svg', dto.player1Points),
             this.#createResultBlock('Player 2', 'img/icons/man02.svg', dto.player2Points),
-            this.#createResultBlock('Google', 'img/icons/googleIcon.svg', dto.googlePoints)
+            this.#createResultBlock('Google', 'img/icons/googleIcon.svg', dto.googlePoints),
+            block
         );
 
         container.append(pointsContainer);
@@ -238,18 +252,7 @@ class ModalComponent {
     }
 
     render(dto) {
-        const isGoogleWinner = dto.winner === dto.google
-        const isPlayer1Winner = dto.winner === dto.player1
-        const isPlayer2Winner = dto.winner === dto.player2
-
-        const biggestPlayerCatch = dto.player1.points < dto.player2.points
-            ? dto.player2.points
-            : dto.player1.points
-        const resultPoints = isPlayer1Winner
-            ? `${dto.player1.points}`
-            : isPlayer2Winner
-                ? `${dto.player1.points}`
-                : `${biggestPlayerCatch}`
+        const isGoogleWinner = dto.status === GameStatuses.LOSE
 
         const Modal = document.createElement('div')
         Modal.classList.add('modal')
@@ -269,41 +272,41 @@ class ModalComponent {
         titleModal.textContent = isGoogleWinner ? 'Google Win!' : `You Win!`
         const textModal = document.createElement('div')
         textModal.classList.add('text-modal')
-        const winnerName = dto.winner ? dto.winner.name : 'Unknown';
+        const winnerName = dto.winner.name
         textModal.textContent = isGoogleWinner ? `You'll be lucky next time` : winnerName;
 
         const modalResult = document.createElement('div')
         modalResult.classList.add('modal-result')
 
-        const playerResultBlock = document.createElement('div')
-        playerResultBlock.classList.add('result-block')
-        const playerResultTitle = document.createElement('span')
-        playerResultTitle.classList.add('result-title')
-        playerResultTitle.textContent = 'Catch:'
-        const playerResult = document.createElement('span')
-        playerResult.classList.add('result')
-        playerResult.append(`${resultPoints}`)
-        playerResultBlock.append(playerResultTitle, playerResult)
+        const pointsResultBlock = document.createElement('div')
+        pointsResultBlock.classList.add('result-block')
+        const pointsResultTitle = document.createElement('span')
+        pointsResultTitle.classList.add('result-title')
+        pointsResultTitle.textContent = 'Catch:'
+        const pointsResult = document.createElement('span')
+        pointsResult.classList.add('result')
+        pointsResult.append(`${dto.winner.points}`)
+        pointsResultBlock.append(pointsResultTitle, pointsResult)
 
-        const googleResultBlock = document.createElement('div')
-        googleResultBlock.classList.add('result-block')
-        const googleResultTitle = document.createElement('span')
-        googleResultTitle.classList.add('result-title')
-        googleResultTitle.textContent = 'Miss:'
-        const googleResult = document.createElement('span')
-        googleResult.classList.add('result')
-        googleResult.append(`${dto.google.points}`)
-        googleResultBlock.append(googleResultTitle, googleResult)
+        const timeResultBlock = document.createElement('div')
+        timeResultBlock.classList.add('result-block')
+        const timeResultTitle = document.createElement('span')
+        timeResultTitle.classList.add('result-title')
+        timeResultTitle.textContent = 'Time:'
+        const timeResult = document.createElement('span')
+        timeResult.classList.add('result')
+        timeResult.append(dto.timer)
+        timeResultBlock.append(timeResultTitle, timeResult)
 
         const buttonPlayAgain = document.createElement('button')
         buttonPlayAgain.classList.add('button', 'play-again-button')
         buttonPlayAgain.textContent = 'Play again'
 
         buttonPlayAgain.onclick = () => {
-            this.#props?.onstart?.()
+            this.#props?.onrestart?.()
         }
 
-        modalResult.append(playerResultBlock, googleResultBlock)
+        modalResult.append(pointsResultBlock, timeResultBlock)
         modalElements.append(titleModal, textModal, modalResult, buttonPlayAgain)
         Modal.append(ImageWrapper, modalElements)
 

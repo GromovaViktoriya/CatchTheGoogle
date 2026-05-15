@@ -15,6 +15,10 @@ export class Game {
     #numberUtility
     #winner = null
     #jumpIntervalId = null
+    #gameSessionTimerId = null
+    seconds = 0
+    minutes = 0
+    #timer = `0${this.minutes}:0${this.seconds}`;
 
     //DI/Dependency injection
     constructor(somethingSimilarToNumberUtility) {
@@ -24,19 +28,12 @@ export class Game {
     #settings = new GameSettings(4, 10, 10)
 
     start() {
-        if (this.#status !== GameStatuses.SETTINGS &&
-            this.#status !== GameStatuses.WIN &&
-            this.#status !== GameStatuses.LOSE) {
+        if (this.status !== GameStatuses.SETTINGS) {
             throw new Error('Game must be in Settings status before start')
         }
 
-        if (this.#status === GameStatuses.WIN || this.#status === GameStatuses.LOSE) {
-            clearInterval(this.#jumpIntervalId);
-            this.#googlePoints = 0;
-        }
-
-        this.#status = GameStatuses.IN_PROGRESS;
-        this.#winner = null;
+        this.status = GameStatuses.IN_PROGRESS;
+        this.winner = null;
         this.#player1 = new Player(1, 'Player 1', null, 0)
         this.#player2 = new Player(2, 'Player 2', null, 0)
         this.#google = new Google(null, 0);
@@ -46,9 +43,49 @@ export class Game {
         this.#notify()
 
         this.#jumpIntervalId = setInterval(() => {
-            this.#googlePoints += 1;
             this.#checkWinCondition();
             if (this.#status === GameStatuses.IN_PROGRESS) {
+                this.#makeGoogleJump();
+                this.#notify();
+            }
+        }, this.#settings.googleJumpInterval);
+
+        //установка таймера игровой сессии
+        this.#gameSessionTimerId = setInterval(() => {
+            this.seconds += 1;
+            if (this.seconds > 59) {
+                this.minutes += 1;
+                this.seconds = 0;
+            }
+            const minutes = this.minutes < 10 ? `0${this.minutes}` : this.minutes;
+            const seconds = this.seconds < 10 ? `0${this.seconds}` : this.seconds;
+            this.#timer = `${minutes}:${seconds}`;
+            this.#notify();
+            if (this.status !== GameStatuses.IN_PROGRESS) {
+                clearInterval(this.#gameSessionTimerId);
+            }
+        }, 1000);
+    }
+
+    restart() {
+        if (this.status !== GameStatuses.WIN &&
+            this.status !== GameStatuses.LOSE) {
+            throw new Error('Game must be in Settings status before start')
+        }
+        this.status = GameStatuses.SETTINGS;
+        this.winner = null;
+        this.seconds = 0;
+        this.minutes = 0;
+        this.#timer = `00:00`;
+        this.#googlePoints = 0;
+    }
+
+    #resetJumpInterval() {
+        clearInterval(this.#jumpIntervalId);
+        this.#jumpIntervalId = setInterval(() => {
+            this.googlePoints += 1;
+            this.#checkWinCondition();
+            if (this.status === GameStatuses.IN_PROGRESS) {
                 this.#makeGoogleJump();
                 this.#notify();
             }
@@ -68,7 +105,7 @@ export class Game {
     }
 
     movePlayer(playerId, direction) {
-        if (this.#status !== GameStatuses.IN_PROGRESS) return;
+        if (this.status !== GameStatuses.IN_PROGRESS) return;
         if (direction !== moveDirection.UP
             && direction !== moveDirection.DOWN
             && direction !== moveDirection.LEFT
@@ -76,7 +113,7 @@ export class Game {
             throw new Error('Invalid direction')
         }
         let position = playerId === 1 ? this.player1Position : this.player2Position;
-        const activePlayer = playerId === 1 ? this.#player1 : this.#player2;
+        const activePlayer = playerId === 1 ? this.player1 : this.player2;
         let newPosition
         switch (direction) {
             case moveDirection.UP:
@@ -111,6 +148,7 @@ export class Game {
         }
         if (activePlayer.position.equals(this.#googlePosition)) {
             activePlayer.points += 1;
+            this.#resetJumpInterval()
         }
 
         this.#checkWinCondition();
@@ -122,51 +160,56 @@ export class Game {
             this.#numberUtility.getRandomIntegerNumber(0, this.gridSize.columnsCount),
             this.#numberUtility.getRandomIntegerNumber(0, this.gridSize.rowsCount)
         )
-        this.#player1.position = newPosition
+        this.player1.position = newPosition
     }
 
     #placePlayer2ToGrid() {
-        const newPosition = new Position(
-            this.#numberUtility.getRandomIntegerNumber(0, this.gridSize.columnsCount),
-            this.#numberUtility.getRandomIntegerNumber(0, this.gridSize.rowsCount)
-        )
-        if (!newPosition.equals(this.player1Position)) {
-            this.#player2.position = newPosition
-        }
+        let newPosition
+        do { newPosition = new Position(
+                this.#numberUtility.getRandomIntegerNumber(0, this.gridSize.columnsCount),
+                this.#numberUtility.getRandomIntegerNumber(0, this.gridSize.rowsCount))
+        } while (newPosition.equals(this.player1Position));
+        this.player2.position = newPosition
     }
 
     #makeGoogleJump() {
-        const newPosition = new Position(
-            this.#numberUtility.getRandomIntegerNumber(0, this.gridSize.columnsCount),
-            this.#numberUtility.getRandomIntegerNumber(0, this.gridSize.rowsCount)
-        )
-        if (newPosition.equals(this.#googlePosition) ||
-            newPosition.equals(this.player1Position) ||
-            newPosition.equals(this.player2Position)) {
-            this.#makeGoogleJump();
-            return
+        const totalCells = this.gridSize.columnsCount * this.gridSize.rowsCount;
+        const occupiedCellsCount = 3;
+        //Если свободных ячеек нет, прыжок невозможен
+        if (totalCells <= occupiedCellsCount) {
+            throw new Error('There are no free cells for Google to jump in')
         }
+
+        let newPosition
+        do {
+            newPosition = new Position(
+                this.#numberUtility.getRandomIntegerNumber(0, this.gridSize.columnsCount),
+                this.#numberUtility.getRandomIntegerNumber(0, this.gridSize.rowsCount))
+        } while (newPosition.equals(this.#googlePosition)
+        || newPosition.equals(this.player1Position)
+        || newPosition.equals(this.player2Position))
         this.#googlePosition = newPosition
     }
 
     #checkWinCondition() {
-        if (this.player1Points === this.pointsToWin) {
-            this.#winner = this.#player1;
+        if (this.player1Points >= this.pointsToWin) {
+            this.winner = this.#player1;
             this.#finishGame(GameStatuses.WIN);
         }
-        if (this.player2Points === this.pointsToWin) {
-            this.#winner = this.#player2;
+        if (this.player2Points >= this.pointsToWin) {
+            this.winner = this.#player2;
             this.#finishGame(GameStatuses.WIN);
         }
-        if (this.#googlePoints === this.#settings.pointsToLose) {
-            this.#winner = this.#google;
+        if (this.googlePoints >= this.pointsToLose) {
+            this.winner = this.#google;
             this.#finishGame(GameStatuses.LOSE);
         }
     }
 
-    #finishGame(status){
+    #finishGame(status) {
         this.status = status;
         clearInterval(this.#jumpIntervalId);
+        this.googlePoints = 0;
     }
 
 
@@ -176,16 +219,18 @@ export class Game {
     get player1Position() {return this.#player1?.position}
     get player2Position() {return this.#player2?.position}
     get player1Points() {return this.#player1?.points}
-    get player1Name(){return this.#player1?.name}
+    get player1Name() {return this.#player1?.name}
     get player2Points() {return this.#player2?.points}
-    get player2Name(){return this.#player2?.name}
-    get googleName(){return this.#google?.name}
+    get player2Name() {return this.#player2?.name}
+    get googleName() {return this.#google?.name}
     get googlePoints() {return this.#googlePoints}
-    get pointsToWin(){return this.#settings.pointsToWin}
-    get pointsToLose(){return this.#settings.pointsToLose}
-    get player1(){return this.#player1}
-    get player2(){return this.#player2}
-    get google(){return this.#google}
+    get pointsToWin() {return this.#settings.pointsToWin}
+    get pointsToLose() {return this.#settings.pointsToLose}
+    get player1() {return this.#player1}
+    get player2() {return this.#player2}
+    get google() {return this.#google}
+    get timer() {return this.#timer}
+    get winner() {return this.#winner}
 
     /**
      * Sets the interval for the target's jumps across the grid.
@@ -193,7 +238,14 @@ export class Game {
      * @throws {TypeError} If the provided value is not of type 'number'.
      * @throws {RangeError} If the provided value is less than or equal to 0.
      */
+    set status(newValue) {
+        this.#status = newValue
+        this.#notify()
+    }
     set googleJumpInterval(newValue) {
+        if (this.status !== GameStatuses.SETTINGS) {
+            return;
+        }
         if (typeof newValue !== 'number') {
             throw new TypeError('newValue must be a number')
         }
@@ -202,25 +254,32 @@ export class Game {
         }
         this.#settings.googleJumpInterval = newValue;
     }
-
-    set status(newValue) {this.#status = newValue;}
     set gridSize(value) {
+        if (this.status !== GameStatuses.SETTINGS) {
+            return;
+        }
         this.#settings.gridSize = value;
         this.#notify()
+    }
+    set pointsToWin(value) {
+        if (this.status !== GameStatuses.SETTINGS) {
+            return;
+        }
+        this.#settings.pointsToWin = value;
+        this.#notify();
+    }
+    set pointsToLose(value) {
+        if (this.status !== GameStatuses.SETTINGS) {
+            return;
+        }
+        this.#settings.pointsToLose = value;
+        this.#notify();
     }
     set player1Points(points) {this.#player1.points = points}
     set player2Points(points) {this.#player2.points = points;}
     set googlePoints(points) {this.#googlePoints = points;}
     set player1Name(player1Name) {this.#player1.name = player1Name;}
     set player2Name(player2Name) {this.#player2.name = player2Name;}
-    set pointsToWin(value) {
-        this.#settings.pointsToWin = value;
-        this.#notify();
-    }
-
-    set pointsToLose(value) {
-        this.#settings.pointsToLose = value;
-        this.#notify();
-    }
+    set winner(winner) {this.#winner = winner;}
 }
 

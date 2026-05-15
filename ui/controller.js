@@ -20,6 +20,10 @@ export class Controller {
             this.#model.start()
             this.#render()
         }
+        this.#view.onrestart = () => {
+            this.#model.restart()
+            this.#render()
+        }
         this.#view.onplayermove = (playerNumber, direction) => {
             this.#model.movePlayer(playerNumber, direction)
         }
@@ -46,7 +50,7 @@ export class Controller {
             player1Points: this.#model.player1Points,
             player2Points: this.#model.player2Points,
             pointsToWin: this.#model.pointsToWin,
-            pointsToLoose: this.#model.pointsToLose,
+            pointsToLose: this.#model.pointsToLose,
             winner: this.#model.winner,
             player1Name: this.#model.player1Name,
             player2Name: this.#model.player2Name,
@@ -55,6 +59,7 @@ export class Controller {
             player1: this.#model.player1,
             player2: this.#model.player2,
             googleJumpInterval: this.#model.googleJumpInterval,
+            timer: this.#model.timer,
         }
         this.#view.render(dto)
     }
