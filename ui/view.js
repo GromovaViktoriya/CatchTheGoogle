@@ -9,6 +9,12 @@ export class View {
     onpause = null
     onresume = null
     #isNoticeClosed = false;
+    get isNoticeClosed() {
+        return this.#isNoticeClosed;
+    }
+    set isNoticeClosed(value) {
+        this.#isNoticeClosed = value;
+    }
 
     constructor() {
         window.addEventListener('keyup', (e) => {

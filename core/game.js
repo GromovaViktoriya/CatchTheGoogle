@@ -25,7 +25,7 @@ export class Game {
         this.#numberUtility = somethingSimilarToNumberUtility // must have getRandomIntegerNumber method
     }
 
-    #settings = new GameSettings(4, 10, 10)
+    #settings = new GameSettings(4, 10, 5)
 
     start() {
         if (this.status !== GameStatuses.SETTINGS) {
