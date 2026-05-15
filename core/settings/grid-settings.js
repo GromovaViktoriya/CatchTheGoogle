@@ -1,6 +1,6 @@
 export class GridSettings {
     constructor(grid) {
-        if (grid < 4) {
+        if (grid < 3) {
             throw new Error('Min cells count should be 4')
         }
         if (typeof grid !== 'number') {

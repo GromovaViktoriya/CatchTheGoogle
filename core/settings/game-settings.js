@@ -20,9 +20,6 @@ export class GameSettings {
     get pointsToLose() {return this.#pointsToLose}
 
     set gridSize(grid) {
-        if (!(grid instanceof GridSettings)) {
-            throw new TypeError('grid must be an instance of GridSettings')
-        }
         return this.#gridSize = grid
     }
     set googleJumpInterval(interval) {

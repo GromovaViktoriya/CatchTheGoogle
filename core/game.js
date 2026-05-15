@@ -66,6 +66,7 @@ export class Game {
             this.status !== GameStatuses.LOSE) {
             throw new Error('Game must be in Settings status before start')
         }
+        this.#settings = new GameSettings(4, 10, 10);
         this.status = GameStatuses.SETTINGS;
         this.winner = null;
         this.seconds = 0;
@@ -73,6 +74,8 @@ export class Game {
         this.#timer = `00:00`;
         this.#googlePoints = 0;
         this.google.points = 0;
+
+        this.#notify();
     }
 
     #runJumpInterval() {
@@ -238,6 +241,7 @@ export class Game {
     get google() {return this.#google}
     get timer() {return this.#timer}
     get winner() {return this.#winner}
+    get googleJumpInterval() {return this.#settings.googleJumpInterval}
 
     /**
      * Sets the interval for the target's jumps across the grid.

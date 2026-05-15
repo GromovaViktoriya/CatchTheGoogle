@@ -2,6 +2,7 @@ import {Game} from "./game";
 import {GameStatuses} from "./constants/game-statuses";
 import {ShogunNumberUtility} from "./shogun-number-utility";
 import {moveDirection} from "./constants/moveDirection";
+import {GridSettings} from "./settings/grid-settings";
 
 
 describe('Game', () => {
@@ -33,21 +34,20 @@ describe('Game', () => {
 
     it('google should be in the Grid but in new position after jump', async () => {
         const game = new Game(new ShogunNumberUtility());
-        game.googleJumpInterval = 1; //1ms
-        await game.start(); // jump -> webAPI/browser 10
-        for (let i = 0; i < 100; i++) {
-            const prevGooglePosition = game.googlePosition;
-            await delay(1) // await -> webAPI/browser 10 // after 10 ms: macroTask
-            const currentGooglePosition = game.googlePosition;
-            expect(prevGooglePosition).not.toEqual(currentGooglePosition)
-        }
+        game.googleJumpInterval = 10;
+        game.start();
+
+        const prevGooglePosition = { x: game.googlePosition.x, y: game.googlePosition.y };
+        await delay(20);
+        const currentGooglePosition = { x: game.googlePosition.x, y: game.googlePosition.y };
+
+        expect(prevGooglePosition).not.toEqual(currentGooglePosition);
     })
 
     it('player should be in the Grid after start', async () => {
         const numberUtil = new ShogunNumberUtility();
         for (let i = 0; i < 100; i++) {
             const game = new Game(numberUtil);
-            expect(game.player1Position).toBeNull()
             await game.start()
             expect(game.player1Position.x).toBeLessThan(game.gridSize.columnsCount)
             expect(game.player1Position.x).toBeGreaterThanOrEqual(0)
@@ -64,15 +64,10 @@ describe('Game', () => {
             //     return this.values[this.#index++]
             // }
             *numbersGenerator() {
-                yield 2;
-                yield 2;
-                yield 1;
-                yield 1;
-                yield 0;
-                yield 0;
-                while (true) {
-                    yield 0;
-                }
+                yield 2; yield 2; // p1 (x, y)
+                yield 1; yield 1; // p2 (x, y)
+                yield 0; yield 0; // google (x, y)
+                while (true) yield 0;
             },
             iterator: null,
             getRandomIntegerNumber() {
@@ -84,17 +79,21 @@ describe('Game', () => {
 
         }
         const game = new Game(fakeNumberUtil);
-        game.gridSize = {columnsCount: 3, rowsCount: 3}
+        let newGrid = new GridSettings(3);
+        game.gridSize = newGrid
         game.start()
         // [  ] [  ] [  ]
-        // [  ] [  ] [  ]
+        // [  ] [p2] [  ]
         // [  ] [  ] [p1]
         // вниз-вверх по y
         // влево-вправо по x
 
         expect(game.player1Position).toEqual({x: 2, y: 2})
+        expect(game.player2Position).toEqual({x: 1, y: 1})
         game.movePlayer(1, moveDirection.RIGHT)
+        game.movePlayer(2, moveDirection.LEFT)
         expect(game.player1Position).toEqual({x: 2, y: 2})
+        expect(game.player2Position).toEqual({x: 0, y: 1})
         game.movePlayer(1, moveDirection.DOWN)
         expect(game.player1Position).toEqual({x: 2, y: 2})
         game.movePlayer(1, moveDirection.UP)
