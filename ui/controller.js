@@ -15,13 +15,20 @@ export class Controller {
         this.#model.subscribe(() => {
             console.log('STATE OF GAME CHANGED')
         })
-
         this.#view.onstart = () => {
             this.#model.start()
             this.#render()
         }
         this.#view.onrestart = () => {
             this.#model.restart()
+            this.#render()
+        }
+        this.#view.onpause = () => {
+            this.#model.pause()
+            this.#render()
+        }
+        this.#view.onresume = () => {
+            this.#model.resume()
             this.#render()
         }
         this.#view.onplayermove = (playerNumber, direction) => {

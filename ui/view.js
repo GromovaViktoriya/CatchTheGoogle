@@ -6,6 +6,8 @@ export class View {
     onplayermove = null
     onsettingschange = null
     onrestart = null
+    onpause = null
+    onresume = null
 
     constructor() {
         window.addEventListener('keyup', (e) => {
@@ -55,9 +57,11 @@ export class View {
             case GameStatuses.IN_PROGRESS: {
                 const gameInterfaceComponent = new GameInterfaceComponent();
                 const gameInterfaceElement = gameInterfaceComponent.render(dto);
+                const noticeComponent = new NoticeComponent();
+                const noticeElement = noticeComponent.render();
                 const gridComponent = new GridComponent();
                 const gridElement = gridComponent.render(dto);
-                rootElement.append(settingsElement, gameInterfaceElement, gridElement);
+                rootElement.append(settingsElement, gameInterfaceElement,noticeElement, gridElement);
                 break;
             }
             case GameStatuses.WIN:
@@ -65,6 +69,12 @@ export class View {
                 const modalComponent = new ModalComponent({onrestart: this.onrestart});
                 const modalElement = modalComponent.render(dto);
                 rootElement.append(modalElement);
+                break;
+            }
+            case GameStatuses.PAUSE: {
+                const pauseComponent = new PauseComponent({onpause: this.onresume, onresume: this.onresume});
+                const pauseElement = pauseComponent.render(dto)
+                rootElement.append(pauseElement);
                 break;
             }
         }
@@ -311,5 +321,48 @@ class ModalComponent {
         Modal.append(ImageWrapper, modalElements)
 
         return Modal
+    }
+}
+
+class PauseComponent {
+    #props
+
+    constructor(props) {
+        this.#props = props;
+    }
+
+    render(dto) {
+        const pauseContainer = document.createElement('div');
+        pauseContainer.classList.add('pause-container');
+        pauseContainer.id = 'pause-container';
+        const resumeButton = document.createElement('button');
+        resumeButton.classList.add('button', 'resume-button');
+        const quitButton = document.createElement('button');
+        quitButton.classList.add('button', 'quit-button')   }
+}
+
+class NoticeComponent {
+    render(){
+        const noticeContainer = document.createElement('div');
+        noticeContainer.classList.add('notice');
+        noticeContainer.id = 'notice';
+
+        const noticeIcon = document.createElement('img');
+        noticeIcon.src = 'img/icons/noticeIcon.svg';
+        noticeIcon.alt = 'notice';
+
+        const noticeText = document.createElement('p');
+        noticeText.classList.add('notice-text');
+        noticeText.textContent = 'Control is done with “arrows for player 1” and “WASD for player 2”';
+
+        const noticeButton = document.createElement('button');
+        noticeButton.classList.add('notice-button');
+        noticeButton.textContent = 'Ok';
+        noticeButton.onclick = () => {
+            noticeContainer.display = 'none';
+        }
+
+        noticeContainer.append(noticeIcon,noticeText, noticeButton);
+        return noticeContainer;
     }
 }

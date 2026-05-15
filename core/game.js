@@ -41,24 +41,9 @@ export class Game {
         this.#placePlayer2ToGrid()
         this.#makeGoogleJump()
         this.#notify()
-
-        this.#runJumpInterval();
-
         //установка таймера игровой сессии
-        this.#gameSessionTimerId = setInterval(() => {
-            this.seconds += 1;
-            if (this.seconds > 59) {
-                this.minutes += 1;
-                this.seconds = 0;
-            }
-            const minutes = this.minutes < 10 ? `0${this.minutes}` : this.minutes;
-            const seconds = this.seconds < 10 ? `0${this.seconds}` : this.seconds;
-            this.#timer = `${minutes}:${seconds}`;
-            this.#notify();
-            if (this.status !== GameStatuses.IN_PROGRESS) {
-                clearInterval(this.#gameSessionTimerId);
-            }
-        }, 1000);
+        this.#runGameSessionTimer()
+        this.#runJumpInterval();
     }
 
     restart() {
@@ -74,7 +59,20 @@ export class Game {
         this.#timer = `00:00`;
         this.#googlePoints = 0;
         this.google.points = 0;
+        this.#notify();
+    }
 
+    pause(){
+        clearInterval(this.#gameSessionTimerId);
+        clearInterval(this.#jumpIntervalId);
+        this.status = GameStatuses.PAUSE;
+        this.#notify();
+    }
+
+    resume(){
+        this.#runGameSessionTimer()
+        this.#runJumpInterval();
+        this.status = GameStatuses.IN_PROGRESS;
         this.#notify();
     }
 
@@ -87,6 +85,19 @@ export class Game {
             this.#checkWinCondition();
             this.#notify();
         }, this.#settings.googleJumpInterval);
+    }
+
+    #runGameSessionTimer() {
+        this.#gameSessionTimerId = setInterval(() => {
+            this.seconds += 1;
+            if (this.seconds > 59) {
+                this.minutes += 1;
+                this.seconds = 0;
+            }
+            const minutes = this.minutes < 10 ? `0${this.minutes}` : this.minutes;
+            const seconds = this.seconds < 10 ? `0${this.seconds}` : this.seconds;
+            this.#timer = `${minutes}:${seconds}`;
+        }, 1000);
     }
 
 
