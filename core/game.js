@@ -89,10 +89,6 @@ export class Game {
         }, this.#settings.googleJumpInterval);
     }
 
-    #resetJumpInterval() {
-        clearInterval(this.#jumpIntervalId);
-        this.#runJumpInterval();
-    }
 
     //массив наблюдателей-подписчиков
     #observers = []

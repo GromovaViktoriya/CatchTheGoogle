@@ -79,8 +79,7 @@ describe('Game', () => {
 
         }
         const game = new Game(fakeNumberUtil);
-        let newGrid = new GridSettings(3);
-        game.gridSize = newGrid
+        game.gridSize = new GridSettings(3);
         game.start()
         // [  ] [  ] [  ]
         // [  ] [p2] [  ]
