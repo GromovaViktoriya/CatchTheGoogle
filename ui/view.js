@@ -9,11 +9,19 @@ export class View {
     onpause = null
     onresume = null
     #isNoticeClosed = false;
+    #isSoundToggleOn = false;
+
     get isNoticeClosed() {
         return this.#isNoticeClosed;
     }
     set isNoticeClosed(value) {
         this.#isNoticeClosed = value;
+    }
+    get isSoundToggleOn() {
+        return this.#isSoundToggleOn;
+    }
+    set isSoundToggleOn(value) {
+        this.#isSoundToggleOn = value;
     }
 
     constructor() {
@@ -50,7 +58,13 @@ export class View {
     render(dto) {
         const rootElement = document.getElementById('root')
 
-        const settingsComponent = new SettingsComponent({onchange: this.onsettingschange, onpause: this.onpause});
+        const settingsComponent = new SettingsComponent({
+            onchange: this.onsettingschange,
+            onpause: this.onpause,
+            isSoundOn: this.#isSoundToggleOn,
+            ontogglesound: (value) => {
+                this.#isSoundToggleOn = value}
+        });
         const settingsElement = settingsComponent.render(dto);
         const gameInterfaceComponent = new GameInterfaceComponent();
         const gameInterfaceElement = gameInterfaceComponent.render(dto);
@@ -85,7 +99,7 @@ export class View {
             }
             case GameStatuses.PAUSE: {
                 const pauseComponent = new PauseComponent({onrestart: this.onrestart, onresume: this.onresume});
-                const pauseElement = pauseComponent.render(dto)
+                const pauseElement = pauseComponent.render()
                 rootElement.append(settingsElement, gameInterfaceElement, gridElement, pauseElement,);
                 break;
             }
@@ -153,10 +167,16 @@ class SettingsComponent {
         switchButtonWrapper.classList.add('switch-button');
         const switchLabel = document.createElement('label');
         switchLabel.textContent = 'Sound on'
+
         const toggleButton = document.createElement('button');
         toggleButton.classList.add('toggle')
+        if (this.#props.isSoundOn) {
+            toggleButton.classList.add('on');
+        }
         toggleButton.onclick = () => {
            toggleButton.classList.toggle('on');
+            const isNowOn = toggleButton.classList.contains('on'); // true/false
+            this.#props.ontogglesound?.(isNowOn);
         }
         const sliderSpan = document.createElement('span');
         sliderSpan.classList.add('icon-slider');
@@ -372,7 +392,7 @@ class PauseComponent {
         this.#props = props;
     }
 
-    render(dto) {
+    render() {
         const pauseContainer = document.createElement('div');
         pauseContainer.classList.add('pause-container');
         pauseContainer.id = 'pause-container';

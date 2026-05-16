@@ -22,6 +22,7 @@ export class Controller {
         this.#view.onrestart = () => {
             this.#model.restart()
             this.#view.isNoticeClosed = false
+            this.#view.isSoundToggleOn = false
             this.#render()
         }
         this.#view.onpause = () => {
