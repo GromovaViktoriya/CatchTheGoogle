@@ -156,7 +156,7 @@ label {
     line-height: 24px;
 }
 
-select {
+select, input {
     height: 36px;
     font-size: 16px;
     background: #191A1C;
@@ -166,6 +166,24 @@ select {
     border-radius: 5px;
     padding: 6px 12px;
     cursor: pointer;
+}
+
+.line-input {
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 250px;
+}
+
+input {
+    width: 300px;
+}
+select:disabled,
+input:disabled {
+    background: #232426;
+    color: #7A7C80;
+    border-color: #2D2E30;
+    cursor: not-allowed;
+    opacity: 0.8;
 }
 
 /* Toggle //======================================================================================================================================================== */

@@ -19,6 +19,8 @@ export class Game {
     seconds = 0
     minutes = 0
     #timer = `00:00`;
+    #player1CustomName = '';
+    #player2CustomName = '';
 
     //DI/Dependency injection
     constructor(somethingSimilarToNumberUtility) {
@@ -34,8 +36,8 @@ export class Game {
 
         this.status = GameStatuses.IN_PROGRESS;
         this.winner = null;
-        this.#player1 = new Player(1, 'Player 1', null, 0)
-        this.#player2 = new Player(2, 'Player 2', null, 0)
+        this.#player1 = new Player(1, this.#player1CustomName, null, 0)
+        this.#player2 = new Player(2, this.#player2CustomName, null, 0)
         this.#google = new Google(null, 0);
         this.#placePlayer1ToGrid()
         this.#placePlayer2ToGrid()
@@ -237,10 +239,10 @@ export class Game {
     get googlePosition() {return this.#googlePosition}
     get player1Position() {return this.#player1?.position}
     get player2Position() {return this.#player2?.position}
+    get player1Name() { return this.#player1 ? this.#player1.name : this.#player1CustomName; }
+    get player2Name() { return this.#player2 ? this.#player2.name : this.#player2CustomName; }
     get player1Points() {return this.#player1?.points}
-    get player1Name() {return this.#player1?.name}
     get player2Points() {return this.#player2?.points}
-    get player2Name() {return this.#player2?.name}
     get googleName() {return this.#google?.name}
     get googlePoints() {return this.#googlePoints}
     get pointsToWin() {return this.#settings.pointsToWin}
@@ -302,8 +304,20 @@ export class Game {
         if (this.#google) {
             this.#google.points = points;
         }}
-    set player1Name(player1Name) {this.#player1.name = player1Name;}
-    set player2Name(player2Name) {this.#player2.name = player2Name;}
+    set player1Name(player1Name) {
+        this.#player1CustomName = player1Name;
+        if (this.#player1) {
+            this.#player1.name = player1Name;
+        }
+        this.#notify();
+    }
+    set player2Name(player2Name) {
+        this.#player2CustomName = player2Name;
+        if (this.#player2) {
+            this.#player2.name = player2Name;
+        }
+        this.#notify();
+    }
     set winner(winner) {this.#winner = winner;}
 }
 

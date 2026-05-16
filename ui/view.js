@@ -319,11 +319,51 @@ class SettingsComponent {
         toggleButton.append(sliderSpan);
         switchButtonWrapper.append(switchLabel, toggleButton);
 
+        const container1 = document.createElement('div');
+        container1.classList.add('line-input');
+        const container2 = document.createElement('div');
+        container2.classList.add('line-input');
+
+        const player1NameInput = document.createElement('input');
+        player1NameInput.classList.add('player-name-input');
+        player1NameInput.id = 'player1-name-input';
+        player1NameInput.type = 'text';
+        player1NameInput.placeholder = 'Player 1'
+        player1NameInput.value = dto.player1Name || ''
+        player1NameInput.disabled = dto.status !== GameStatuses.SETTINGS;
+        player1NameInput.onmouseenter = () => this.#props.onhover?.();
+        player1NameInput.onchange = (e) => {
+            this.#props.onchange?.('player1Name', e.target.value);
+        };
+        const label1 = document.createElement('label');
+        label1.htmlFor = 'player1-name-input';
+        label1.textContent = 'Insert Player 1 name';
+
+        const player2NameInput = document.createElement('input');
+        player2NameInput.classList.add('player-name-input');
+        player2NameInput.id = 'player2-name-input';
+        player2NameInput.type = 'text';
+        player2NameInput.placeholder = 'Player 2'
+        player2NameInput.value = dto.player2Name || ''
+        player2NameInput.disabled = dto.status !== GameStatuses.SETTINGS;
+        player2NameInput.onmouseenter = () => this.#props.onhover?.();
+        player2NameInput.onchange = (e) => {
+            this.#props.onchange?.('player2Name', e.target.value);
+        }
+        const label2 = document.createElement('label');
+        label2.htmlFor = 'player2-name-input';
+        label2.textContent = 'Insert Player 2 name';
+
+        container1.append(label1, player1NameInput);
+        container2.append(label2, player2NameInput);
+
         settingsContainer.append(
             this.#createOptionLine('Grid size', '01', gridOptions, dto.gridSize.columnsCount, 'gridSize', dto),
             this.#createOptionLine('Points to win', '02', winOptions, dto.pointsToWin, 'pointsToWin', dto),
             this.#createOptionLine('Points to lose', '03', loseOptions, dto.pointsToLose, 'pointsToLose', dto),
             this.#createOptionLine('Google Jump Interval', '04', intervalOptions, dto.googleJumpInterval, 'googleJumpInterval', dto),
+            container1,
+            container2,
             pauseButton,
             switchButtonWrapper
         );
@@ -378,8 +418,8 @@ class GameInterfaceComponent {
 
         //отрисовка блоков счета (Player 1, Player 2, Google)
         pointsContainer.append(
-            this.#createResultBlock('Player 1', 'img/icons/man01.svg', dto.player1Points),
-            this.#createResultBlock('Player 2', 'img/icons/man02.svg', dto.player2Points),
+            this.#createResultBlock(dto.player1Name || 'Player 1', 'img/icons/man01.svg', dto.player1Points),
+            this.#createResultBlock(dto.player2Name || 'Player 2', 'img/icons/man02.svg', dto.player2Points),
             this.#createResultBlock('Google', 'img/icons/googleIcon.svg', dto.googlePoints),
             block
         );

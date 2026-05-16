@@ -44,6 +44,8 @@ export class Controller {
             if (settingKey === 'pointsToWin') this.#model.pointsToWin = Number(value);
             if (settingKey === 'pointsToLose') this.#model.pointsToLose = Number(value);
             if (settingKey === 'googleJumpInterval') this.#model.googleJumpInterval = Number(value);
+            if (settingKey === 'player1Name') this.#model.player1Name = value;
+            if (settingKey === 'player2Name') this.#model.player2Name = value;
         }
     }
 
