@@ -36,9 +36,12 @@ export class View {
             audioObject.currentTime = 13;
             audioObject.loop = true;
             audioObject.volume = 0.2;
+        } else if (audioObject === this.#buttonSound) {
+            audioObject.currentTime = 3;
+            audioObject.volume = 0.1;
         } else {
             audioObject.currentTime = 0;
-            audioObject.volume = 0.2;
+            audioObject.volume = 0.1;
         }
         audioObject.play().catch(error => {
             console.log('Воспроизведение заблокировано браузером:', error);
@@ -117,13 +120,18 @@ export class View {
                 this.#playSound(this.#backgroundMusic);
             } else if (dto.status === GameStatuses.PAUSE) {
                 this.#backgroundMusic.pause();
+            } else if (dto.status === GameStatuses.WIN) {
+                this.#stopSound(this.#backgroundMusic);
+                this.#playSound(this.#winSound);
+            } else if (dto.status === GameStatuses.LOSE) {
+                this.#stopSound(this.#backgroundMusic);
+                this.#playSound(this.#loseSound);
             } else {
                 this.#stopSound(this.#backgroundMusic);
             }
         }
 
         if (dto.status === GameStatuses.IN_PROGRESS && this.#previousState.status === GameStatuses.IN_PROGRESS) {
-
             if (dto.player1Points > this.#previousState.player1Points || dto.player2Points > this.#previousState.player2Points) {
                 this.#playSound(this.#catchGoogleSound);
             } else if (dto.googlePoints > this.#previousState.googlePoints) {
@@ -160,7 +168,9 @@ export class View {
             ontogglesound: (value) => {
                 this.isSoundToggleOn = value;
                 if(value) this.#playSound(this.#buttonSound);
-            }
+            },
+            onhover: () => this.#playSound(this.#hoverSound),
+            onselectclick: () => this.#playSound(this.#selectSound)
         });
         const settingsElement = settingsComponent.render(dto);
         const gameInterfaceComponent = new GameInterfaceComponent();
@@ -176,7 +186,8 @@ export class View {
                     onstart: () => {
                         this.#playSound(this.#buttonSound);
                         this.onstart?.();
-                    }});
+                    }
+                });
                 const startElement = startComponent.render();
                 rootElement.append(settingsElement, startElement);
                 break;
@@ -186,7 +197,7 @@ export class View {
                         onclose: () => {
                             this.#playSound(this.#buttonSound);
                             this.#isNoticeClosed = true;
-                        }
+                        },
                     });
                     const noticeElement = noticeComponent.render();
                     rootElement.append(noticeElement);
@@ -200,7 +211,8 @@ export class View {
                     onrestart: () => {
                         this.#playSound(this.#buttonSound);
                         this.onrestart?.();
-                    }});
+                    },
+                });
                 const modalElement = modalComponent.render(dto);
                 rootElement.append(modalElement);
                 break;
@@ -214,7 +226,8 @@ export class View {
                     onresume: () => {
                         this.#playSound(this.#buttonSound);
                         this.onresume?.();
-                    }});
+                    },
+                });
                 const pauseElement = pauseComponent.render()
                 rootElement.append(settingsElement, gameInterfaceElement, gridElement, pauseElement,);
                 break;
@@ -249,7 +262,10 @@ class SettingsComponent {
             select.append(option);
         });
 
+        select.onmouseenter = () => this.#props.onhover?.() //аналог hover в js
+
         select.onchange = (e) => {
+            this.#props.onselectclick?.();
             this.#props.onchange?.(settingKey, e.target.value);
         };
 
@@ -492,7 +508,6 @@ class ModalComponent {
         const buttonPlayAgain = document.createElement('button')
         buttonPlayAgain.classList.add('button', 'play-again-button')
         buttonPlayAgain.textContent = 'Play again'
-
         buttonPlayAgain.onclick = () => {
             this.#props?.onrestart?.()
         }
