@@ -11,18 +11,71 @@ export class View {
     #isNoticeClosed = false;
     #isSoundToggleOn = false;
 
+    #backgroundMusic = new Audio('sounds/background.mp3');
+    #buttonSound = new Audio('sounds/buttonClick.mp3');
+    #catchGoogleSound = new Audio('sounds/playerPoint.mp3');
+    #missSound = new Audio('sounds/googlePoint.mp3');
+    #playerMoveSound = new Audio('sounds/playerMove.mp3');
+    #winSound = new Audio('sounds/winSound.mp3');
+    #loseSound = new Audio('sounds/loseSound.mp3');
+    #hoverSound = new Audio('sounds/hoverSound.mp3');
+    #selectSound = new Audio('sounds/selectSound.mp3');
+
+    #previousState = {
+        status: null,
+        player1Points: 0,
+        player2Points: 0,
+        googlePoints: 0,
+        player1Position: null,
+        player2Position: null
+    };
+
+    #playSound(audioObject) {
+        if (!this.#isSoundToggleOn) return;
+        if (audioObject === this.#backgroundMusic) {
+            audioObject.currentTime = 13;
+            audioObject.loop = true;
+            audioObject.volume = 0.2;
+        } else {
+            audioObject.currentTime = 0;
+            audioObject.volume = 0.2;
+        }
+        audioObject.play().catch(error => {
+            console.log('Воспроизведение заблокировано браузером:', error);
+        });
+    }
+
+    #stopSound(audioObject) {
+        audioObject.pause();
+        audioObject.currentTime = 0;
+    }
+
     get isNoticeClosed() {
         return this.#isNoticeClosed;
     }
+
     set isNoticeClosed(value) {
         this.#isNoticeClosed = value;
     }
+
     get isSoundToggleOn() {
         return this.#isSoundToggleOn;
     }
+
     set isSoundToggleOn(value) {
         this.#isSoundToggleOn = value;
+        if (!value) {
+            this.#backgroundMusic.pause();
+        } else if (this.#previousState.status === GameStatuses.IN_PROGRESS) {
+            this.#playSound(this.#backgroundMusic);
+        }
     }
+
+    #isPositionChanged(pos1, pos2) {
+        if (!pos1 || !pos2) return false;
+        return pos1.x !== pos2.x || pos1.y !== pos2.y;
+    }
+
 
     constructor() {
         window.addEventListener('keyup', (e) => {
@@ -55,15 +108,59 @@ export class View {
         });
     }
 
+
     render(dto) {
+        //Анализ изменений dto и запуск звуков
+
+        if (dto.status !== this.#previousState.status) {
+            if (dto.status === GameStatuses.IN_PROGRESS) {
+                this.#playSound(this.#backgroundMusic);
+            } else if (dto.status === GameStatuses.PAUSE) {
+                this.#backgroundMusic.pause();
+            } else {
+                this.#stopSound(this.#backgroundMusic);
+            }
+        }
+
+        if (dto.status === GameStatuses.IN_PROGRESS && this.#previousState.status === GameStatuses.IN_PROGRESS) {
+
+            if (dto.player1Points > this.#previousState.player1Points || dto.player2Points > this.#previousState.player2Points) {
+                this.#playSound(this.#catchGoogleSound);
+            } else if (dto.googlePoints > this.#previousState.googlePoints) {
+                this.#playSound(this.#missSound);
+            }
+
+            else if (
+                this.#isPositionChanged(dto.player1Position, this.#previousState.player1Position) ||
+                this.#isPositionChanged(dto.player2Position, this.#previousState.player2Position)
+            ) {
+                this.#playSound(this.#playerMoveSound);
+            }
+        }
+
+        this.#previousState = {
+            status: dto.status,
+            player1Points: dto.player1Points,
+            player2Points: dto.player2Points,
+            googlePoints: dto.googlePoints,
+            player1Position: dto.player1Position ? { ...dto.player1Position } : null,
+            player2Position: dto.player2Position ? { ...dto.player2Position } : null
+        };
+
+        //Отрисовка
         const rootElement = document.getElementById('root')
 
         const settingsComponent = new SettingsComponent({
             onchange: this.onsettingschange,
-            onpause: this.onpause,
+            onpause: () => {
+                this.#playSound(this.#buttonSound);
+                this.onpause?.();
+            },
             isSoundOn: this.#isSoundToggleOn,
             ontogglesound: (value) => {
-                this.#isSoundToggleOn = value}
+                this.isSoundToggleOn = value;
+                if(value) this.#playSound(this.#buttonSound);
+            }
         });
         const settingsElement = settingsComponent.render(dto);
         const gameInterfaceComponent = new GameInterfaceComponent();
@@ -75,14 +172,21 @@ export class View {
 
         switch (dto.status) {
             case GameStatuses.SETTINGS:
-                const startComponent = new StartComponent({onstart: this.onstart});
+                const startComponent = new StartComponent({
+                    onstart: () => {
+                        this.#playSound(this.#buttonSound);
+                        this.onstart?.();
+                    }});
                 const startElement = startComponent.render();
                 rootElement.append(settingsElement, startElement);
                 break;
             case GameStatuses.IN_PROGRESS: {
                 if (!this.#isNoticeClosed) {
                     const noticeComponent = new NoticeComponent({
-                        onclose: () => { this.#isNoticeClosed = true; }
+                        onclose: () => {
+                            this.#playSound(this.#buttonSound);
+                            this.#isNoticeClosed = true;
+                        }
                     });
                     const noticeElement = noticeComponent.render();
                     rootElement.append(noticeElement);
@@ -92,13 +196,25 @@ export class View {
             }
             case GameStatuses.WIN:
             case GameStatuses.LOSE: {
-                const modalComponent = new ModalComponent({onrestart: this.onrestart});
+                const modalComponent = new ModalComponent({
+                    onrestart: () => {
+                        this.#playSound(this.#buttonSound);
+                        this.onrestart?.();
+                    }});
                 const modalElement = modalComponent.render(dto);
                 rootElement.append(modalElement);
                 break;
             }
             case GameStatuses.PAUSE: {
-                const pauseComponent = new PauseComponent({onrestart: this.onrestart, onresume: this.onresume});
+                const pauseComponent = new PauseComponent({
+                    onrestart: () => {
+                        this.#playSound(this.#buttonSound);
+                        this.onrestart?.();
+                    },
+                    onresume: () => {
+                        this.#playSound(this.#buttonSound);
+                        this.onresume?.();
+                    }});
                 const pauseElement = pauseComponent.render()
                 rootElement.append(settingsElement, gameInterfaceElement, gridElement, pauseElement,);
                 break;
@@ -109,12 +225,13 @@ export class View {
 
 class SettingsComponent {
     #props
+
     constructor(props) {
         this.#props = props
     }
 
     //Хелпер для создания селектов
-        #createOptionLine (labelTitle, id, options, currentValue, settingKey, dto) {
+    #createOptionLine(labelTitle, id, options, currentValue, settingKey, dto) {
         const container = document.createElement('div');
         container.classList.add('line');
 
@@ -149,7 +266,10 @@ class SettingsComponent {
         const gridOptions = [{t: '4x4', v: 4}, {t: '5x5', v: 5}, {t: '7x7', v: 7}, {t: '8x8', v: 8}];
         const winOptions = [{t: '10 pts', v: 10}, {t: '20 pts', v: 20}, {t: '30 pts', v: 30}, {t: '40 pts', v: 40}];
         const loseOptions = [{t: '5 pts', v: 5}, {t: '10 pts', v: 10}, {t: '15 pts', v: 15}, {t: '20 pts', v: 20}];
-        const intervalOptions = [{t: '1 sec', v: 1000}, {t: '2 sec', v: 2000}, {t: '3 sec', v: 3000}, {t: '4 sec', v: 4000}];
+        const intervalOptions = [{t: '1 sec', v: 1000}, {t: '2 sec', v: 2000}, {t: '3 sec', v: 3000}, {
+            t: '4 sec',
+            v: 4000
+        }];
 
         const pauseButton = document.createElement('button');
         pauseButton.classList.add('pause-button');
@@ -174,7 +294,7 @@ class SettingsComponent {
             toggleButton.classList.add('on');
         }
         toggleButton.onclick = () => {
-           toggleButton.classList.toggle('on');
+            toggleButton.classList.toggle('on');
             const isNowOn = toggleButton.classList.contains('on'); // true/false
             this.#props.ontogglesound?.(isNowOn);
         }
@@ -409,7 +529,7 @@ class PauseComponent {
         pauseButtonWrapper.classList.add('pause-button-wrapper');
 
         const resumeButton = document.createElement('button');
-        resumeButton.classList.add('pauseBtn','resume-button');
+        resumeButton.classList.add('pauseBtn', 'resume-button');
         const resumeIcon = document.createElement('img');
         resumeIcon.src = 'img/icons/resumeIcon.svg';
         resumeIcon.alt = 'resumeIcon';
@@ -419,7 +539,7 @@ class PauseComponent {
         resumeButton.append(resumeIcon, 'RESUME');
 
         const quitButton = document.createElement('button');
-        quitButton.classList.add('pauseBtn','quit-button')
+        quitButton.classList.add('pauseBtn', 'quit-button')
         const quitIcon = document.createElement('img');
         quitIcon.src = 'img/icons/quitIcon.svg';
         quitIcon.alt = 'quitIcon';
@@ -437,10 +557,12 @@ class PauseComponent {
 
 class NoticeComponent {
     #props
+
     constructor(props) {
         this.#props = props
     }
-    render(){
+
+    render() {
         const noticeContainer = document.createElement('div');
         noticeContainer.classList.add('notice');
         noticeContainer.id = 'notice';
@@ -461,7 +583,7 @@ class NoticeComponent {
             this.#props?.onclose?.();
         }
 
-        noticeContainer.append(noticeIcon,noticeText, noticeButton);
+        noticeContainer.append(noticeIcon, noticeText, noticeButton);
         return noticeContainer;
     }
 }
