@@ -19,8 +19,8 @@ export class Game {
     seconds = 0
     minutes = 0
     #timer = `00:00`;
-    #player1CustomName = '';
-    #player2CustomName = '';
+    #player1CustomName = 'Player 1';
+    #player2CustomName = 'Player 2';
 
     //DI/Dependency injection
     constructor(somethingSimilarToNumberUtility) {
