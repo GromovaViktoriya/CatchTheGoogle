@@ -1,5 +1,5 @@
-import {GameStatuses} from "../core/constants/game-statuses.js";
-import {moveDirection} from "../core/constants/moveDirection.js";
+import {GameStatuses} from "./core/constants/game-statuses.js";
+import {moveDirection} from "./core/constants/moveDirection.js";
 
 export class View {
     onstart = null
