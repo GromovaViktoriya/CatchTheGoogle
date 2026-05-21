@@ -91,71 +91,71 @@ export class GameProxy {
     get gridSize() { return this.#stateCache ? this.#stateCache.gridSize : {columnsCount: 4, rowsCount: 4}; }
 
     get googlePosition() {
-        return this.#stateCache.googlePosition
+        return this.#stateCache ? this.#stateCache.googlePosition : null;
     }
 
     get player1Position() {
-        return this.#stateCache.player1Position
+        return this.#stateCache ? this.#stateCache.player1Position : null;
     }
 
     get player2Position() {
-        return this.#stateCache.player2Position
+        return this.#stateCache ? this.#stateCache.player2Position : null;
     }
 
     get player1Name() {
-        return this.#stateCache.player1Name
+        return this.#stateCache ? this.#stateCache.player1Name : 'Player 1';
     }
 
     get player2Name() {
-        return this.#stateCache.player2Name
+        return this.#stateCache ? this.#stateCache.player2Name : 'Player 2';
     }
 
     get player1Points() {
-        return this.#stateCache.player1Points
+        return this.#stateCache ? this.#stateCache.player1Points : 0;
     }
 
     get player2Points() {
-        return this.#stateCache.player2Points
+        return this.#stateCache ? this.#stateCache.player2Points : 0;
     }
 
     get googleName() {
-        return this.#stateCache.googleName
+        return this.#stateCache ? this.#stateCache.googleName : 'Google';
     }
 
     get googlePoints() {
-        return this.#stateCache.googlePoints
+        return this.#stateCache ? this.#stateCache.googlePoints : 0;
     }
 
     get pointsToWin() {
-        return this.#stateCache.pointsToWin
+        return this.#stateCache ? this.#stateCache.pointsToWin : 10;
     }
 
     get pointsToLose() {
-        return this.#stateCache.pointsToLose
+        return this.#stateCache ? this.#stateCache.pointsToLose : 10;
     }
 
     get player1() {
-        return this.#stateCache.player1
+        return this.#stateCache ? this.#stateCache.player1 : null;
     }
 
     get player2() {
-        return this.#stateCache.player2
+        return this.#stateCache ? this.#stateCache.player2 : null;
     }
 
     get google() {
-        return this.#stateCache.google
+        return this.#stateCache ? this.#stateCache.google : null;
     }
 
     get timer() {
-        return this.#stateCache.timer
+        return this.#stateCache ? this.#stateCache.timer : "00:00";
     }
 
     get winner() {
-        return this.#stateCache.winner
+        return this.#stateCache ? this.#stateCache.winner : null;
     }
 
     get googleJumpInterval() {
-        return this.#stateCache.googleJumpInterval
+        return this.#stateCache ? this.#stateCache.googleJumpInterval : 1000;
     }
 
     set status(newValue) {
