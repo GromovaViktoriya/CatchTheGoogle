@@ -13,15 +13,15 @@ export class View {
     #role = null; // Поле для хранения роли текущей вкладки
     #playersCount = 1;
 
-    #backgroundMusic = new Audio('sounds/background.mp3');
-    #buttonSound = new Audio('sounds/buttonClick.mp3');
-    #catchGoogleSound = new Audio('sounds/playerPoint.mp3');
-    #missSound = new Audio('sounds/googlePoint.mp3');
-    #playerMoveSound = new Audio('sounds/playerMove.mp3');
-    #winSound = new Audio('sounds/winSound.mp3');
-    #loseSound = new Audio('sounds/loseSound.mp3');
-    #hoverSound = new Audio('sounds/hoverSound.mp3');
-    #selectSound = new Audio('sounds/selectSound.mp3');
+    #backgroundMusic = new Audio('./sounds/background.mp3');
+    #buttonSound = new Audio('./sounds/buttonClick.mp3');
+    #catchGoogleSound = new Audio('./sounds/playerPoint.mp3');
+    #missSound = new Audio('./sounds/googlePoint.mp3');
+    #playerMoveSound = new Audio('./sounds/playerMove.mp3');
+    #winSound = new Audio('./sounds/winSound.mp3');
+    #loseSound = new Audio('./sounds/loseSound.mp3');
+    #hoverSound = new Audio('./sounds/hoverSound.mp3');
+    #selectSound = new Audio('./sounds/selectSound.mp3');
 
     #previousState = {
         status: null,
@@ -310,7 +310,7 @@ class SettingsComponent {
         pauseButton.disabled = !isGameActive;
         const pauseIcon = document.createElement('img');
 
-        pauseIcon.src = isGameActive ? 'img/icons/pauseButtonActive.svg' : 'img/icons/pauseButton.svg';
+        pauseIcon.src = isGameActive ? './img/icons/pauseButtonActive.svg' : './img/icons/pauseButton.svg';
         pauseIcon.alt = 'pause';
         pauseButton.append(pauseIcon);
         pauseButton.onclick = () => {
@@ -436,9 +436,9 @@ class GameInterfaceComponent {
 
         //отрисовка блоков счета (Player 1, Player 2, Google)
         pointsContainer.append(
-            this.#createResultBlock(dto.player1Name || 'Player 1', 'img/icons/man01.svg', dto.player1Points),
-            this.#createResultBlock(dto.player2Name || 'Player 2', 'img/icons/man02.svg', dto.player2Points),
-            this.#createResultBlock('Google', 'img/icons/googleIcon.svg', dto.googlePoints),
+            this.#createResultBlock(dto.player1Name || 'Player 1', './img/icons/man01.svg', dto.player1Points),
+            this.#createResultBlock(dto.player2Name || 'Player 2', './img/icons/man02.svg', dto.player2Points),
+            this.#createResultBlock('Google', './img/icons/googleIcon.svg', dto.googlePoints),
             block
         );
 
@@ -484,13 +484,13 @@ class GridComponent {
                 const isPlayer2 = dto.player2Position?.x === x && dto.player2Position?.y === y;
                 const isGoogle = dto.googlePosition?.x === x && dto.googlePosition?.y === y;
                 const googleIcon = document.createElement('img')
-                googleIcon.src = "img/icons/googleIcon.svg"
+                googleIcon.src = "./img/icons/googleIcon.svg"
                 googleIcon.alt = "googleIcon"
                 const player1Icon = document.createElement('img')
-                player1Icon.src = "img/icons/man01.svg"
+                player1Icon.src = "./img/icons/man01.svg"
                 player1Icon.alt = "man"
                 const player2Icon = document.createElement('img')
-                player2Icon.src = "img/icons/man02.svg"
+                player2Icon.src = "./img/icons/man02.svg"
                 player2Icon.alt = "man"
 
                 if (isPlayer1) {
@@ -526,7 +526,7 @@ class ModalComponent {
         const ImageWrapper = document.createElement('div')
         ImageWrapper.classList.add('modal-decoration')
         const Image = document.createElement('img')
-        Image.src = isGoogleWinner ? 'img/icons/lossIcon.svg' : 'img/icons/winnerIcon.svg'
+        Image.src = isGoogleWinner ? 'img/icons/lossIcon.svg' : './img/icons/winnerIcon.svg'
         Image.alt = 'icon'
         ImageWrapper.append(Image)
 
@@ -604,7 +604,7 @@ class PauseComponent {
         const resumeButton = document.createElement('button');
         resumeButton.classList.add('pauseBtn', 'resume-button');
         const resumeIcon = document.createElement('img');
-        resumeIcon.src = 'img/icons/resumeIcon.svg';
+        resumeIcon.src = './img/icons/resumeIcon.svg';
         resumeIcon.alt = 'resumeIcon';
         resumeButton.onclick = () => {
             this.#props?.onresume?.()
@@ -614,7 +614,7 @@ class PauseComponent {
         const quitButton = document.createElement('button');
         quitButton.classList.add('pauseBtn', 'quit-button')
         const quitIcon = document.createElement('img');
-        quitIcon.src = 'img/icons/quitIcon.svg';
+        quitIcon.src = './img/icons/quitIcon.svg';
         quitIcon.alt = 'quitIcon';
         quitButton.onclick = () => {
             this.#props?.onrestart?.()
@@ -641,7 +641,7 @@ class NoticeComponent {
         noticeContainer.id = 'notice';
 
         const noticeIcon = document.createElement('img');
-        noticeIcon.src = 'img/icons/info.svg';
+        noticeIcon.src = './img/icons/info.svg';
         noticeIcon.alt = 'notice';
 
         const noticeText = document.createElement('p');
