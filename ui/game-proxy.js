@@ -40,7 +40,7 @@ export class GameProxy {
         return this.#playerRole; // Геттер для получения роли в контроллере
     }
     get playersCount() {
-        return this.#stateCache.playersCount;
+        return this.#stateCache ? this.#stateCache.playersCount : 1;
     }
 
     initialized() {
