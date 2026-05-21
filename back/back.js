@@ -39,7 +39,8 @@ function createDTO(game) {
 
 import {WebSocketServer} from "ws";
 
-const wss = new WebSocketServer({port: 8080});
+const port = process.env.PORT || 8080;
+const wss = new WebSocketServer({ port: port });
 
 // Функция для выдачи свободной роли
 function getAvailableRole() {
