@@ -21,7 +21,7 @@ export class GameProxy {
 
     //DI/Dependency injection
     constructor(somethingSimilarToNumberUtility) {
-        this.#wsChannel = new WebSocket('ws://localhost:8080')
+        this.#wsChannel = new WebSocket('wss://catchthegoogle.onrender.com')
         this.#wsChannel.addEventListener('message', (event) => {
             const receivedData = JSON.parse(event.data);
 
