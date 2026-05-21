@@ -1,13 +1,18 @@
 import {Controller} from "./controller.js";
 import {View} from "./view.js";
-import {ShogunNumberUtility} from "../core/shogun-number-utility.js";
-import {Game} from "../core/game.js";
+import {GameProxy} from "./game-proxy.js";
 
 
 //composition root
 const view = new View();
-const numberUtil = new ShogunNumberUtility()
-const game = new Game(numberUtil);
+// const numberUtil = new ShogunNumberUtility()
+const game = new GameProxy();
 
 const controller = new Controller(view, game);
-controller.init();
+
+const intervalId = setInterval(()=>{
+    if(game.initialized()){
+        controller.init();
+        clearInterval(intervalId);
+    }
+}, 100)

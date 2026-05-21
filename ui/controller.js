@@ -55,6 +55,8 @@ export class Controller {
 
     #render() {
         const dto = {
+            role: this.#model.role,
+            playersCount: this.#model.playersCount,
             status: this.#model.status,
             gridSize: this.#model.gridSize,
             googlePosition: this.#model.googlePosition,

@@ -10,6 +10,8 @@ export class View {
     onresume = null
     #isNoticeClosed = false;
     #isSoundToggleOn = false;
+    #role = null; // Поле для хранения роли текущей вкладки
+    #playersCount = 1;
 
     #backgroundMusic = new Audio('sounds/background.mp3');
     #buttonSound = new Audio('sounds/buttonClick.mp3');
@@ -82,31 +84,45 @@ export class View {
 
     constructor() {
         window.addEventListener('keyup', (e) => {
-            switch (e.code) {
-                case 'ArrowUp':
-                    this.onplayermove?.(1, moveDirection.UP);
-                    break;
-                case 'ArrowDown':
-                    this.onplayermove?.(1, moveDirection.DOWN);
-                    break;
-                case 'ArrowLeft':
-                    this.onplayermove?.(1, moveDirection.LEFT);
-                    break;
-                case 'ArrowRight':
-                    this.onplayermove?.(1, moveDirection.RIGHT);
-                    break;
-                case 'KeyW':
-                    this.onplayermove?.(2, moveDirection.UP);
-                    break;
-                case 'KeyS':
-                    this.onplayermove?.(2, moveDirection.DOWN);
-                    break;
-                case 'KeyA':
-                    this.onplayermove?.(2, moveDirection.LEFT);
-                    break;
-                case 'KeyD':
-                    this.onplayermove?.(2, moveDirection.RIGHT);
-                    break;
+            // Если мы зритель или роль еще не пришла — полностью блокируем клавиатуру
+            if (!this.#role || this.#role === 'spectator') return;
+            let direction = null;
+            let playerId = this.#role;
+
+            // РЕЖИМ 1: Игра за одним экраном (Открыта 1 вкладка)
+            if (this.#playersCount === 1) {
+                switch (e.code) {
+                    case 'ArrowUp': direction = moveDirection.UP; playerId = 1; break;
+                    case 'ArrowDown': direction = moveDirection.DOWN; playerId = 1; break;
+                    case 'ArrowLeft': direction = moveDirection.LEFT; playerId = 1; break;
+                    case 'ArrowRight': direction = moveDirection.RIGHT; playerId = 1; break;
+                    case 'KeyW': direction = moveDirection.UP; playerId = 2; break;
+                    case 'KeyS': direction = moveDirection.DOWN; playerId = 2; break;
+                    case 'KeyA': direction = moveDirection.LEFT; playerId = 2; break;
+                    case 'KeyD': direction = moveDirection.RIGHT; playerId = 2; break;
+                }
+            }
+            // РЕЖИМ 2: Онлайн игра (Открыто 2 и более вкладок)
+            else {
+                if (this.#role === 1) {
+                    switch (e.code) {
+                        case 'ArrowUp': direction = moveDirection.UP; break;
+                        case 'ArrowDown': direction = moveDirection.DOWN; break;
+                        case 'ArrowLeft': direction = moveDirection.LEFT; break;
+                        case 'ArrowRight': direction = moveDirection.RIGHT; break;
+                    }
+                } else if (this.#role === 2) {
+                    switch (e.code) {
+                        case 'KeyW': direction = moveDirection.UP; break;
+                        case 'KeyS': direction = moveDirection.DOWN; break;
+                        case 'KeyA': direction = moveDirection.LEFT; break;
+                        case 'KeyD': direction = moveDirection.RIGHT; break;
+                    }
+                }
+            }
+
+            if (direction !== null) {
+                this.onplayermove?.(playerId, direction);
             }
         });
     }
@@ -114,6 +130,8 @@ export class View {
 
     render(dto) {
         //Анализ изменений dto и запуск звуков
+        this.#role = dto.role;
+        this.#playersCount = dto.playersCount;
 
         if (dto.status !== this.#previousState.status) {
             if (dto.status === GameStatuses.IN_PROGRESS) {

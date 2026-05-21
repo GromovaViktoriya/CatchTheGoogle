@@ -2,6 +2,7 @@
   "name": "CatchTheGoogle_lesson1",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,7 +14,9 @@
   "dependencies": {
     "@babel/preset-env": "^7.29.2",
     "babel-jest": "^30.3.0",
-    "jest": "^30.3.0"
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.14",
+    "ws": "^8.20.1"
   },
   "jest": {
     "transform": {
