@@ -1,5 +1,5 @@
-import {GoogleSettings} from "google-settings.js";
-import {GridSettings} from "grid-settings.js";
+import {GoogleSettings} from "./google-settings.js";
+import {GridSettings} from "./grid-settings.js";
 
 export class GameSettings {
     #gridSize
