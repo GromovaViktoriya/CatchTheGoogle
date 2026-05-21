@@ -21,7 +21,13 @@ export class GameProxy {
 
     //DI/Dependency injection
     constructor(somethingSimilarToNumberUtility) {
-        this.#wsChannel = new WebSocket('wss://catchthegoogle.onrender.com')
+        // Переключатель: если мы локально, используем ws://localhost:8080
+        // Если мы на github pages - используем облако
+        const url = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'ws://localhost:8080'
+            : 'wss://catchthegoogle.onrender.com';
+
+        this.#wsChannel = new WebSocket(url);
         this.#wsChannel.addEventListener('message', (event) => {
             const receivedData = JSON.parse(event.data);
 

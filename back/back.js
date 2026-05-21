@@ -44,10 +44,19 @@ const wss = new WebSocketServer({ port: port });
 
 // Функция для выдачи свободной роли
 function getAvailableRole() {
+    // Очищаем Map от "мертвых" каналов (если вдруг они остались в памяти)
+    for (let [channel, role] of players.entries()) {
+        if (channel.readyState !== 1) { // 1 = OPEN
+            players.delete(channel);
+        }
+    }
+
     const activeRoles = Array.from(players.values());
-    if (!activeRoles.includes(1)) return 1; // Если нет 1-го игрока, выдаем 1
-    if (!activeRoles.includes(2)) return 2; // Если нет 2-го игрока, выдаем 2
-    return 'spectator'; // Все остальные - зрители
+    console.log("Текущие роли в игре:", activeRoles); // Поможет понять, почему ты Player 2
+
+    if (!activeRoles.includes(1)) return 1;
+    if (!activeRoles.includes(2)) return 2;
+    return 'spectator';
 }
 
 wss.on('connection', (channel) => {
@@ -78,47 +87,53 @@ wss.on('connection', (channel) => {
 
     // 3. Обработка входящих команд
     channel.on('message', (message) => {
-        const action = JSON.parse(message.toString());
 
-        // Узнаем, кто именно прислал сообщение
-        const playerRole = players.get(channel);
+        try {
+            const action = JSON.parse(message.toString());
 
-        // Зрителям запрещено управлять игрой
-        if (playerRole === 'spectator') {
-            console.log('Попытка управления от зрителя отклонена');
-            return;
-        }
+            // Узнаем, кто именно прислал сообщение
+            const playerRole = players.get(channel);
 
-        switch (action.type) {
-            case 'start': game.start(); break;
-            case 'restart': game.restart(); break;
-            case 'pause': game.pause(); break;
-            case 'resume': game.resume(); break;
-
-            case 'move-player': {
-                // УМНАЯ ПРОВЕРКА УПРАВЛЕНИЯ:
-                if (players.size === 1) {
-                    // Режим 1 экрана (Local Co-op): Разрешаем одной вкладке двигать обоих
-                    game.movePlayer(action.payload.playerId, action.payload.direction);
-                } else {
-                    // Онлайн режим: Жестко игнорируем присланный ID и используем роль клиента (защита)
-                    game.movePlayer(playerRole, action.payload.direction);
-                }
-                break;
+            // Зрителям запрещено управлять игрой
+            if (playerRole === 'spectator') {
+                console.log('Попытка управления от зрителя отклонена');
+                return;
             }
 
-            case 'set-status': game.status = action.payload.newValue; break;
-            case 'set-googleJumpInterval': game.googleJumpInterval = action.payload.newValue; break;
-            case 'set-gridSize': game.gridSize = action.payload.value; break;
-            case 'set-pointsToWin': game.pointsToWin = action.payload.value; break;
-            case 'set-pointsToLose': game.pointsToLose = action.payload.value; break;
-            case 'set-player1Points': game.player1Points = action.payload.points; break;
-            case 'set-player2Points': game.player2Points = action.payload.points; break;
-            case 'set-googlePoints': game.googlePoints = action.payload.points; break;
-            case 'set-player1Name': game.player1Name = action.payload.player1Name; break;
-            case 'set-player2Name': game.player2Name = action.payload.player2Name; break;
-            case 'set-winner': game.winner = action.payload.winner; break;
+            switch (action.type) {
+                case 'start': game.start(); break;
+                case 'restart': game.restart(); break;
+                case 'pause': game.pause(); break;
+                case 'resume': game.resume(); break;
+
+                case 'move-player': {
+                    // УМНАЯ ПРОВЕРКА УПРАВЛЕНИЯ:
+                    if (players.size === 1) {
+                        // Режим 1 экрана (Local Co-op): Разрешаем одной вкладке двигать обоих
+                        game.movePlayer(action.payload.playerId, action.payload.direction);
+                    } else {
+                        // Онлайн режим: Жестко игнорируем присланный ID и используем роль клиента (защита)
+                        game.movePlayer(playerRole, action.payload.direction);
+                    }
+                    break;
+                }
+
+                case 'set-status': game.status = action.payload.newValue; break;
+                case 'set-googleJumpInterval': game.googleJumpInterval = action.payload.newValue; break;
+                case 'set-gridSize': game.gridSize = action.payload.value; break;
+                case 'set-pointsToWin': game.pointsToWin = action.payload.value; break;
+                case 'set-pointsToLose': game.pointsToLose = action.payload.value; break;
+                case 'set-player1Points': game.player1Points = action.payload.points; break;
+                case 'set-player2Points': game.player2Points = action.payload.points; break;
+                case 'set-googlePoints': game.googlePoints = action.payload.points; break;
+                case 'set-player1Name': game.player1Name = action.payload.player1Name; break;
+                case 'set-player2Name': game.player2Name = action.payload.player2Name; break;
+                case 'set-winner': game.winner = action.payload.winner; break;
+            }
+        } catch (err) {
+            console.error("Ошибка при обработке команды:", err); // ЛОГ ДЛЯ ОТЛАДКИ
         }
+
     });
 
     channel.on('close', () => {
