@@ -54,6 +54,7 @@ export class Controller {
     }
 
     #render() {
+        if (!this.#model.initialized()) return;
         const dto = {
             role: this.#model.role,
             playersCount: this.#model.playersCount,

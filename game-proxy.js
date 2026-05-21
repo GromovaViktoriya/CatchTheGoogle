@@ -86,13 +86,9 @@ export class GameProxy {
         this.#wsChannel.send(JSON.stringify(action))
     }
 
-    get status() {
-        return this.#stateCache.status
-    }
+    get status() { return this.#stateCache ? this.#stateCache.status : 'SETTINGS'; }
 
-    get gridSize() {
-        return this.#stateCache.gridSize
-    }
+    get gridSize() { return this.#stateCache ? this.#stateCache.gridSize : {columnsCount: 4, rowsCount: 4}; }
 
     get googlePosition() {
         return this.#stateCache.googlePosition
