@@ -217,6 +217,7 @@ export class View {
         const gameInterfaceElement = gameInterfaceComponent.render(dto);
         const gridComponent = new GridComponent();
         const gridElement = gridComponent.render(dto);
+        const modeLabelElement = new ModeLabelComponent().render(dto);
 
         rootElement.innerHTML = '';
 
@@ -229,10 +230,10 @@ export class View {
                     }
                 });
                 const startElement = startComponent.render();
-                rootElement.append(settingsElement, startElement);
+                rootElement.append(settingsElement, modeLabelElement, startElement);
                 break;
             case GameStatuses.IN_PROGRESS: {
-                rootElement.append(settingsElement, gameInterfaceElement, this.#renderNotice(), gridElement);
+                rootElement.append(settingsElement, gameInterfaceElement, modeLabelElement, this.#renderNotice(), gridElement);
                 break;
             }
             case GameStatuses.WIN:
@@ -259,7 +260,7 @@ export class View {
                     },
                 });
                 const pauseElement = pauseComponent.render()
-                rootElement.append(settingsElement, gameInterfaceElement, this.#renderNotice(), gridElement, pauseElement);
+                rootElement.append(settingsElement, gameInterfaceElement, modeLabelElement, this.#renderNotice(), gridElement, pauseElement);
                 break;
             }
         }
@@ -637,6 +638,29 @@ class PauseComponent {
 
         pauseWrapper.append(pauseTitle, pauseButtonWrapper);
         return pauseContainer;
+    }
+}
+
+// Подпись с текущим режимом игры: сразу видно, кем управляет эта вкладка
+class ModeLabelComponent {
+    render(dto) {
+        const label = document.createElement('p');
+        label.classList.add('mode-label');
+
+        const player1Name = dto.player1Name || 'Player 1';
+        const player2Name = dto.player2Name || 'Player 2';
+
+        if (dto.playersCount === 1) {
+            // Одна вкладка: оба персонажа управляются с одной клавиатуры
+            label.textContent = `One keyboard mode · ${player1Name}: arrows · ${player2Name}: WASD`;
+        } else {
+            // Онлайн: эта вкладка управляет только своим персонажем
+            const myName = dto.role === 1 ? player1Name : player2Name;
+            const myControls = dto.role === 1 ? 'arrows' : 'WASD';
+            label.textContent = `Online mode · You are ${myName} · Controls: ${myControls}`;
+        }
+
+        return label;
     }
 }
 

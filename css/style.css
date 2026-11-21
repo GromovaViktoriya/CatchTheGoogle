@@ -120,6 +120,17 @@ body {
     visibility: hidden;
 }
 
+/* Подпись с режимом игры (одна клавиатура / онлайн) */
+.mode-label {
+    align-self: center;
+    margin-bottom: 12px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #fff;
+    opacity: 0.85;
+    text-align: center;
+}
+
 .notice-text {
     font-weight: 400;
     font-size: 18px;
