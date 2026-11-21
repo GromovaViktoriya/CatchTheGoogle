@@ -59,7 +59,31 @@ function getAvailableRole() {
     return null; // Оба места заняты
 }
 
+// Heartbeat: раз в HEARTBEAT_INTERVAL сервер пингует каждого клиента (браузер отвечает на ping автоматически).
+// Если клиент не ответил с прошлой проверки — соединение «мёртвое» (обрыв сети, сон устройства, упавшая вкладка):
+// закрываем его, срабатывает обработчик 'close', и место игрока освобождается
+const HEARTBEAT_INTERVAL = 30000;
+
+const heartbeatId = setInterval(() => {
+    for (const channel of wss.clients) {
+        if (channel.isAlive === false) {
+            console.log('Клиент не отвечает на ping — отключаем');
+            channel.terminate();
+            continue;
+        }
+        channel.isAlive = false;
+        channel.ping();
+    }
+}, HEARTBEAT_INTERVAL);
+
+wss.on('close', () => clearInterval(heartbeatId));
+
 wss.on('connection', (channel) => {
+    channel.isAlive = true;
+    channel.on('pong', () => {
+        channel.isAlive = true;
+    });
+
     // 1. Присваиваем роль при подключении
     const role = getAvailableRole();
 
@@ -157,4 +181,4 @@ wss.on('connection', (channel) => {
     channel.send(JSON.stringify(createDTO(game)));
 });
 
-console.log('WebSocket server is running on port 8080');
+console.log(`WebSocket server is running on port ${port}`);
