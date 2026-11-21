@@ -18,6 +18,7 @@ export class GameProxy {
     #wsChannel = null;
     #stateCache = null;
     #playerRole = null;
+    #isRoomFull = false;
 
     //DI/Dependency injection
     constructor(somethingSimilarToNumberUtility) {
@@ -30,6 +31,12 @@ export class GameProxy {
         this.#wsChannel = new WebSocket(url);
         this.#wsChannel.addEventListener('message', (event) => {
             const receivedData = JSON.parse(event.data);
+
+            if (receivedData.type === 'room-full') {
+                this.#isRoomFull = true;
+                this.#notify();
+                return;
+            }
 
             if (receivedData.type === 'role-assigned') {
                 this.#playerRole = receivedData.payload.role;
@@ -49,8 +56,12 @@ export class GameProxy {
         return this.#stateCache ? this.#stateCache.playersCount : 1;
     }
 
+    get isRoomFull() {
+        return this.#isRoomFull; // true, если оба места в игре уже заняты
+    }
+
     initialized() {
-        return this.#stateCache !== null && this.#playerRole !== null;
+        return this.#isRoomFull || (this.#stateCache !== null && this.#playerRole !== null);
     }
 
     start() {

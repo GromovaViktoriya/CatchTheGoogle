@@ -55,6 +55,10 @@ export class Controller {
 
     #render() {
         if (!this.#model.initialized()) return;
+        if (this.#model.isRoomFull) {
+            this.#view.renderRoomFull()
+            return
+        }
         const dto = {
             role: this.#model.role,
             playersCount: this.#model.playersCount,

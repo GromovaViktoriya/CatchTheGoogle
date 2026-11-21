@@ -84,8 +84,8 @@ export class View {
 
     constructor() {
         window.addEventListener('keyup', (e) => {
-            // Если мы зритель или роль еще не пришла — полностью блокируем клавиатуру
-            if (!this.#role || this.#role === 'spectator') return;
+            // Если роль еще не пришла — полностью блокируем клавиатуру
+            if (!this.#role) return;
             let direction = null;
             let playerId = this.#role;
 
@@ -102,7 +102,7 @@ export class View {
                     case 'KeyD': direction = moveDirection.RIGHT; playerId = 2; break;
                 }
             }
-            // РЕЖИМ 2: Онлайн игра (Открыто 2 и более вкладок)
+            // РЕЖИМ 2: Онлайн игра (Подключены 2 игрока)
             else {
                 if (this.#role === 1) {
                     switch (e.code) {
@@ -127,6 +127,28 @@ export class View {
         });
     }
 
+
+    // Подсказка по управлению стоит между панелью счёта и сеткой, не перекрывая их.
+    // После закрытия она скрывается, но место под ней остаётся — сетка не прыгает
+    // (в том числе при переходе в паузу и обратно)
+    #renderNotice() {
+        const noticeComponent = new NoticeComponent({
+            isHidden: this.#isNoticeClosed,
+            onclose: () => {
+                this.#playSound(this.#buttonSound);
+                this.#isNoticeClosed = true;
+            },
+        });
+        return noticeComponent.render();
+    }
+
+    // Экран для третьего подключившегося: в игре уже два игрока
+    renderRoomFull() {
+        this.#role = null;
+        const rootElement = document.getElementById('root');
+        rootElement.innerHTML = '';
+        rootElement.append(new RoomFullComponent().render());
+    }
 
     render(dto) {
         //Анализ изменений dto и запуск звуков
@@ -210,17 +232,7 @@ export class View {
                 rootElement.append(settingsElement, startElement);
                 break;
             case GameStatuses.IN_PROGRESS: {
-                if (!this.#isNoticeClosed) {
-                    const noticeComponent = new NoticeComponent({
-                        onclose: () => {
-                            this.#playSound(this.#buttonSound);
-                            this.#isNoticeClosed = true;
-                        },
-                    });
-                    const noticeElement = noticeComponent.render();
-                    rootElement.append(noticeElement);
-                }
-                rootElement.append(settingsElement, gameInterfaceElement, gridElement);
+                rootElement.append(settingsElement, gameInterfaceElement, this.#renderNotice(), gridElement);
                 break;
             }
             case GameStatuses.WIN:
@@ -247,7 +259,7 @@ export class View {
                     },
                 });
                 const pauseElement = pauseComponent.render()
-                rootElement.append(settingsElement, gameInterfaceElement, gridElement, pauseElement,);
+                rootElement.append(settingsElement, gameInterfaceElement, this.#renderNotice(), gridElement, pauseElement);
                 break;
             }
         }
@@ -628,6 +640,28 @@ class PauseComponent {
     }
 }
 
+class RoomFullComponent {
+    render() {
+        const container = document.createElement('div');
+        container.classList.add('pause-container');
+
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('pause-wrapper');
+        container.append(wrapper);
+
+        const title = document.createElement('h1');
+        title.classList.add('pause-title');
+        title.textContent = 'GAME IS FULL';
+
+        const text = document.createElement('p');
+        text.classList.add('text-modal');
+        text.textContent = 'Two players are already in the game. Please try again later.';
+
+        wrapper.append(title, text);
+        return container;
+    }
+}
+
 class NoticeComponent {
     #props
 
@@ -639,6 +673,7 @@ class NoticeComponent {
         const noticeContainer = document.createElement('div');
         noticeContainer.classList.add('notice');
         noticeContainer.id = 'notice';
+        if (this.#props?.isHidden) noticeContainer.classList.add('notice--hidden');
 
         const noticeIcon = document.createElement('img');
         noticeIcon.src = './img/icons/info.svg';
@@ -652,7 +687,7 @@ class NoticeComponent {
         noticeButton.classList.add('notice-button');
         noticeButton.textContent = 'OK';
         noticeButton.onclick = () => {
-            noticeContainer.style.display = 'none';
+            noticeContainer.classList.add('notice--hidden');
             this.#props?.onclose?.();
         }
 

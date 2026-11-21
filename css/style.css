@@ -93,7 +93,7 @@ body {
     padding: 12px 36px;
     height: 72px;
 
-    margin-bottom: 96px;
+    margin-bottom: 24px;
 
     background: rgba(57, 61, 55, 0.4);
 
@@ -107,14 +107,17 @@ body {
     align-items: center;
     gap: 12px;
 
-    position: absolute;
-    top: 36%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    align-self: center;
+    margin-bottom: 16px;
 
     border: 2px solid #999b95;
     border-radius: 5px;
     background: rgba(110, 117, 102, 0.6);
+}
+
+/* Скрытая подсказка невидима, но продолжает занимать место, чтобы сетка не сдвигалась */
+.notice--hidden {
+    visibility: hidden;
 }
 
 .notice-text {
@@ -337,9 +340,10 @@ input:disabled {
 }
 
 .title-modal {
-    font-size: 48px;
+    font-size: 40px;
     font-weight: 600;
     line-height: 60px;
+    white-space: nowrap; /* «Google Win!» не переносится и не выталкивает кнопку за карточку */
     margin-bottom: 4px;
 }
 

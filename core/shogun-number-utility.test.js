@@ -1,4 +1,4 @@
-import {ShogunNumberUtility} from "shogun-number-utility.js";
+import {ShogunNumberUtility} from "./shogun-number-utility.js";
 
 
 describe('ShogunNumberUtility', () => {

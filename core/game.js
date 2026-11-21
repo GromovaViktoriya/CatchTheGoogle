@@ -111,6 +111,10 @@ export class Game {
         this.#observers.push(observerFunction)
     }
 
+    unsubscribe(observerFunction) {
+        this.#observers = this.#observers.filter(observer => observer !== observerFunction)
+    }
+
     //уведомить наблюдателей-подписчиков
     #notify() {
         this.#observers.forEach(observerFunction => observerFunction())

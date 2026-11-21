@@ -52,18 +52,27 @@ function getAvailableRole() {
     }
 
     const activeRoles = Array.from(players.values());
-    console.log("Текущие роли в игре:", activeRoles); // Поможет понять, почему ты Player 2
+    console.log("Текущие роли в игре:", activeRoles);
 
     if (!activeRoles.includes(1)) return 1;
     if (!activeRoles.includes(2)) return 2;
-    return 'spectator';
+    return null; // Оба места заняты
 }
 
 wss.on('connection', (channel) => {
     // 1. Присваиваем роль при подключении
     const role = getAvailableRole();
+
+    // В игре может быть только два игрока — третьему сообщаем, что мест нет, и закрываем соединение
+    if (role === null) {
+        console.log('Попытка подключения к заполненной игре отклонена');
+        channel.send(JSON.stringify({type: 'room-full'}));
+        channel.close();
+        return;
+    }
+
     players.set(channel, role);
-    console.log(`Подключился игрок. Выдана роль: ${role === 'spectator' ? 'Зритель' : 'Player ' + role}`);
+    console.log(`Подключился игрок. Выдана роль: Player ${role}`);
 
     // 2. Сообщаем клиенту, кто он такой (отправляем спец. сообщение)
     channel.send(JSON.stringify({
@@ -93,12 +102,6 @@ wss.on('connection', (channel) => {
 
             // Узнаем, кто именно прислал сообщение
             const playerRole = players.get(channel);
-
-            // Зрителям запрещено управлять игрой
-            if (playerRole === 'spectator') {
-                console.log('Попытка управления от зрителя отклонена');
-                return;
-            }
 
             switch (action.type) {
                 case 'start': game.start(); break;
@@ -139,6 +142,7 @@ wss.on('connection', (channel) => {
     channel.on('close', () => {
         const disconnectedRole = players.get(channel);
         players.delete(channel);
+        game.unsubscribe(observer);
 
         if ((disconnectedRole === 1 || disconnectedRole === 2) && game.status === 'IN_PROGRESS') {
             game.pause();
