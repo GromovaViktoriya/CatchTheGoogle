@@ -54,7 +54,11 @@ export class Controller {
     }
 
     #render() {
-        if (!this.#model.initialized()) return;
+        // Пока сервер не прислал состояние (например, просыпается на Render), показываем экран ожидания
+        if (!this.#model.initialized()) {
+            this.#view.renderConnecting()
+            return
+        }
         if (this.#model.isRoomFull) {
             this.#view.renderRoomFull()
             return

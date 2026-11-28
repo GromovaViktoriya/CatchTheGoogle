@@ -22,13 +22,33 @@ export class GameProxy {
 
     //DI/Dependency injection
     constructor(somethingSimilarToNumberUtility) {
-        // Переключатель: если мы локально, используем ws://localhost:8080
-        // Если мы на github pages - используем облако
-        const url = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'ws://localhost:8080'
-            : 'wss://catchthegoogle.onrender.com';
+        this.#connect();
+    }
 
-        this.#wsChannel = new WebSocket(url);
+    // Переключатель: если мы локально, используем ws://localhost:8080
+    // Если мы на github pages - используем облако
+    #url = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'ws://localhost:8080'
+        : 'wss://catchthegoogle.onrender.com';
+
+    // Сервер на бесплатном Render засыпает без игроков: первое подключение может оборваться,
+    // пока он просыпается. Поэтому при обрыве переподключаемся, пока сервер не ответит
+    static RECONNECT_DELAY = 2000;
+
+    #connect() {
+        this.#wsChannel = new WebSocket(this.#url);
+
+        this.#wsChannel.addEventListener('close', () => {
+            // Третьему игроку сервер сам закрывает соединение — переподключаться не нужно
+            if (this.#isRoomFull) return;
+
+            // Сбрасываем состояние: пока соединения нет, показывается экран подключения
+            this.#stateCache = null;
+            this.#playerRole = null;
+            this.#notify();
+            setTimeout(() => this.#connect(), GameProxy.RECONNECT_DELAY);
+        });
+
         this.#wsChannel.addEventListener('message', (event) => {
             const receivedData = JSON.parse(event.data);
 

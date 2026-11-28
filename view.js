@@ -150,6 +150,20 @@ export class View {
         rootElement.append(new RoomFullComponent().render());
     }
 
+    // Экран ожидания, пока сервер не ответил (бесплатный сервер просыпается до минуты)
+    renderConnecting() {
+        this.#role = null;
+        const rootElement = document.getElementById('root');
+        if (rootElement.querySelector('.connecting')) return; // экран уже показан, анимацию не перезапускаем
+
+        // Связь пропала: глушим музыку и забываем прошлый статус, чтобы после переподключения звуки запустились заново
+        this.#backgroundMusic.pause();
+        this.#previousState = {...this.#previousState, status: null};
+
+        rootElement.innerHTML = '';
+        rootElement.append(new ConnectingComponent().render());
+    }
+
     render(dto) {
         //Анализ изменений dto и запуск звуков
         this.#role = dto.role;
@@ -661,6 +675,32 @@ class ModeLabelComponent {
         }
 
         return label;
+    }
+}
+
+class ConnectingComponent {
+    render() {
+        const container = document.createElement('div');
+        container.classList.add('pause-container', 'connecting');
+
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('pause-wrapper');
+        container.append(wrapper);
+
+        const spinner = document.createElement('div');
+        spinner.classList.add('spinner');
+
+        const title = document.createElement('h1');
+        title.classList.add('pause-title');
+        title.textContent = 'Waking up the server...';
+
+        const text = document.createElement('p');
+        text.classList.add('text-modal', 'connecting-text');
+        text.textContent = 'The game server runs on a free plan and sleeps when nobody is playing. ' +
+            'Starting it can take up to a minute. The game will open automatically.';
+
+        wrapper.append(spinner, title, text);
+        return container;
     }
 }
 
